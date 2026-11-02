@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stage Log">
+<meta name="theme-color" content="#f3c614">
+<meta name="description" content="18-week plan to ride 100 km in under 3:15 on 20 March 2027.">
+<title>Stage Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100% }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px) }
+body { margin: 0 }
+[hidden] { display: none !important }
+.savebar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: flex-end }
+.savebar .btn { font-size: 14px; padding: 5px 10px }
+/* Layout: race header (goal, countdowns, phase strip) → sticky tabs → Plan (today + weeks by phase) / Log (form + history) / Race (pacing, fuel, stages) */
+:root {
+  --bg: #eef1f4; --surface: #ffffff; --sunk: #f5f7f9; --ink: #17202b; --muted: #5b6673; --line: #d5dbe2;
+  --accent: #1f4fd1; --accent-ink: #ffffff; --jersey: #f3c614; --jersey-ink: #1b1600;
+  --good: #1d7f4e; --bad: #b3362b; --chip: #e3e8ef;
+  --ph-base: #4f74b8; --ph-build: #23897c; --ph-specific: #c9731f; --ph-peak: #b8372c; --ph-ramadan: #6d52bd; --ph-rest: #7d8894;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141a; --surface: #18202a; --sunk: #131a22; --ink: #e8edf3; --muted: #95a1ae; --line: #2a3542;
+  --accent: #6f95ff; --accent-ink: #0b1220; --jersey: #f3c614; --jersey-ink: #1b1600; --good: #4cc488; --bad: #ff7a6e; --chip: #232d39;
+  --ph-base: #7c9de0; --ph-build: #4cbfae; --ph-specific: #eb9a4b; --ph-peak: #ef6f63; --ph-ramadan: #a28bf0; --ph-rest: #8e9aa7; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #18202a; --sunk: #131a22; --ink: #e8edf3; --muted: #95a1ae; --line: #2a3542;
+  --accent: #6f95ff; --accent-ink: #0b1220; --jersey: #f3c614; --jersey-ink: #1b1600; --good: #4cc488; --bad: #ff7a6e; --chip: #232d39;
+  --ph-base: #7c9de0; --ph-build: #4cbfae; --ph-specific: #eb9a4b; --ph-peak: #ef6f63; --ph-ramadan: #a28bf0; --ph-rest: #8e9aa7; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 56px }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+.wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 20px }
+h1, h2, h3, h4 { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; margin: 0; text-wrap: balance; line-height: 1.05 }
+p { margin: 0 }
+.num { font-family: var(--f-data); font-variant-numeric: tabular-nums }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+.muted { color: var(--muted) }
+button { font: inherit }
+
+/* Header */
+header { display: grid; gap: 14px }
+.title-row { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 16px }
+.title-box { flex: 1 1 320px; min-width: 0 }
+#tourName { font-size: clamp(30px, 6vw, 50px); font-weight: 800; background: none; border: 0; color: var(--ink);
+  font-family: var(--f-display); text-transform: uppercase; padding: 0; width: 100%; min-width: 0 }
+#tourName:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px }
+.status { font-size: 13px; color: var(--muted) }
+
+.goal { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); background: var(--jersey); color: var(--jersey-ink); border-radius: 6px; overflow: hidden }
+.goal-main { padding: 18px 20px; display: grid; gap: 6px; align-content: center }
+.goal-main .big { font-family: var(--f-display); font-weight: 800; font-size: clamp(40px, 8vw, 68px); line-height: .9; text-transform: uppercase }
+.goal-main .big span { opacity: .55 }
+.goal-main p { font-weight: 600 }
+.goal-counts { display: grid; grid-template-columns: 1fr 1fr; background: rgba(0,0,0,.08) }
+.goal-counts div { padding: 16px 18px; display: grid; align-content: center; gap: 2px; border-left: 1px solid rgba(0,0,0,.12) }
+.goal-counts b { font-family: var(--f-display); font-size: 48px; font-weight: 800; line-height: .95 }
+.goal-counts small { font-size: 13px; font-weight: 600; line-height: 1.25 }
+@media (max-width: 680px) { .goal { grid-template-columns: 1fr } .goal-counts div:first-child { border-left: 0 } }
+
+.strip { display: grid; gap: 6px }
+.strip-bar { position: relative; display: flex; height: 30px; border-radius: 4px; overflow: hidden }
+.strip-bar .seg { display: flex; align-items: center; padding: 0 6px; color: #fff; font: 700 12px var(--f-display); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; overflow: hidden; min-width: 0 }
+.strip-bar .now { position: absolute; top: -4px; bottom: -4px; width: 3px; background: var(--ink); border-radius: 2px; box-shadow: 0 0 0 2px var(--bg) }
+.strip-dates { display: flex; justify-content: space-between; font: 12px var(--f-data); color: var(--muted) }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden }
+.stat { background: var(--surface); padding: 12px 14px; min-width: 0 }
+.stat b { display: block; font-family: var(--f-display); font-size: 30px; font-weight: 700; line-height: 1.1 }
+.stat b span { font-size: 16px; color: var(--muted); font-weight: 600 }
+.stat .sub { font-size: 12px; color: var(--muted) }
+@media (max-width: 680px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+
+/* Tabs */
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: flex; gap: 2px; border-bottom: 2px solid var(--line); overflow-x: auto }
+.tabs button { font: 700 20px var(--f-display); text-transform: uppercase; letter-spacing: .03em; background: none; border: 0; color: var(--muted);
+  padding: 10px 14px 8px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+
+.panel { display: grid; gap: 18px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; min-width: 0 }
+.card h3 { font-size: 21px; margin-bottom: 10px }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr } }
+
+/* Today */
+.today { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 18px; border-left: 6px solid var(--accent) }
+.today .when { font-family: var(--f-display); text-transform: uppercase; text-align: center; line-height: 1; padding-top: 2px }
+.today .when b { display: block; font-size: 44px; font-weight: 800 }
+.today .when span { font-size: 14px; font-weight: 700; letter-spacing: .08em; color: var(--muted) }
+.today h2 { font-size: 28px; margin: 4px 0 6px }
+.today .detail { max-width: 62ch }
+.today .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+
+/* Coach notes */
+.coach p + p { margin-top: 8px }
+.coach p { max-width: 70ch }
+.tbl { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: 14px }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-top: 1px solid var(--line); vertical-align: top }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-top: 0; font-weight: 600 }
+td.num, th.num { white-space: nowrap }
+ul.tight { margin: 0; padding-left: 18px; display: grid; gap: 6px }
+
+/* Plan */
+.phase { display: grid; gap: 10px }
+.phase-head { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 12px; align-items: stretch }
+.phase-head .bar { border-radius: 3px }
+.phase-head h3 { font-size: 26px }
+.phase-head p { color: var(--muted); max-width: 70ch }
+.phase-note { background: var(--sunk); border: 1px dashed var(--line); border-radius: 6px; padding: 12px 14px; font-size: 15px }
+.phase-note h4 { font-size: 16px; margin-bottom: 6px }
+details.week { background: var(--surface); border: 1px solid var(--line); border-radius: 6px }
+details.week[data-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) }
+details.week > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 12px 16px }
+details.week > summary::-webkit-details-marker { display: none }
+details.week > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px }
+.wk-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0 }
+.wk-title h4 { font-size: 20px }
+.wk-title .dates { font: 13px var(--f-data); color: var(--muted) }
+.wk-focus { grid-column: 1 / -1; font-size: 14px; color: var(--muted) }
+.wk-right { display: flex; align-items: center; gap: 12px; font: 13px var(--f-data); color: var(--muted) }
+.ring { width: 34px; height: 34px }
+.ring circle { fill: none; stroke-width: 4 }
+.chev { transition: transform .15s; color: var(--muted) }
+details[open] .chev { transform: rotate(90deg) }
+.sessions { border-top: 1px solid var(--line) }
+.sess { display: grid; grid-template-columns: 28px 86px minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 16px; border-top: 1px solid var(--line); align-items: start }
+.sess:first-child { border-top: 0 }
+.sess[data-today="true"] { background: color-mix(in srgb, var(--accent) 8%, transparent) }
+.sess .day { font: 13px var(--f-data); color: var(--muted); padding-top: 2px; line-height: 1.3 }
+.sess .day b { display: block; color: var(--ink); font-weight: 700 }
+.sess .body { min-width: 0 }
+.sess .body strong { font-weight: 700 }
+.sess .body p { font-size: 14px; color: var(--muted); margin-top: 2px; max-width: 66ch }
+.sess[data-done="true"] .body strong { text-decoration: line-through; text-decoration-color: var(--muted) }
+.sess .logbtn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 4px; font-size: 13px; padding: 3px 9px; cursor: pointer; white-space: nowrap }
+.sess .logbtn:focus-visible { outline: 2px solid var(--accent) }
+@media (max-width: 560px) { .sess { grid-template-columns: 28px minmax(0, 1fr) auto } .sess .day { grid-column: 2; display: flex; gap: 8px } .sess .day b { display: inline } .sess .body { grid-column: 2 / -1 } .sess .logbtn { grid-column: 3; grid-row: 1 } }
+
+.check { appearance: none; width: 24px; height: 24px; border: 2px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer; display: grid; place-items: center; margin: 0 }
+.check:checked { background: var(--good); border-color: var(--good) }
+.check:checked::after { content: ""; width: 6px; height: 11px; border: solid var(--surface); border-width: 0 3px 3px 0; transform: translateY(-1px) rotate(45deg) }
+.check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.check:disabled { cursor: default; opacity: .6 }
+
+/* Forms */
+form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 12px; align-items: end }
+form .wide { grid-column: 1 / -1 }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600 }
+input, select, textarea { font: 15px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0 }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
+input:invalid:not(:placeholder-shown) { border-color: var(--bad) }
+textarea { resize: vertical; min-height: 40px }
+.actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.btn { font: 700 16px var(--f-display); text-transform: uppercase; letter-spacing: .05em; border-radius: 4px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink) }
+.btn.ghost { background: none; color: var(--ink); border-color: var(--line) }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px }
+.btn:disabled { opacity: .5; cursor: default }
+.msg { font-size: 14px; color: var(--muted) }
+.msg.err { color: var(--bad) }
+
+.chart svg { width: 100%; height: auto; display: block }
+.chart text { fill: var(--muted); font: 11px var(--f-data) }
+
+/* Lists */
+.row { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 4px 14px; padding: 12px 0; border-top: 1px solid var(--line); align-items: start }
+.row:first-child { border-top: 0 }
+.row .date { font-family: var(--f-data); font-size: 13px; color: var(--muted); padding-top: 3px }
+.row .main { min-width: 0 }
+.row .main strong { font-weight: 600 }
+.row .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--f-data); font-size: 13px; color: var(--muted) }
+.row .meta .fast { color: var(--good); font-weight: 700 }
+.row .notes { font-size: 14px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere }
+.row .ops { display: flex; gap: 4px }
+.row .ops button { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 4px; font-size: 13px; padding: 3px 8px; cursor: pointer }
+.row .ops button:focus-visible { outline: 2px solid var(--accent) }
+.row .ops button.confirm { border-color: var(--bad); color: var(--bad) }
+@media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr) auto } .row .date { grid-column: 1 / -1; padding: 0 } }
+.empty { color: var(--muted); padding: 12px 0 }
+
+.chip { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 7px; border-radius: 3px; background: var(--chip); color: var(--ink); margin-right: 6px; vertical-align: 1px; white-space: nowrap }
+.chip.done { background: var(--good); color: var(--surface) }
+.chip.ex { background: none; border: 1px dashed var(--muted); color: var(--muted) }
+.chip.fast { background: none; border: 1px solid var(--ph-ramadan); color: var(--ph-ramadan) }
+.chip.key { background: var(--jersey); color: var(--jersey-ink) }
+.exbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: 14px; color: var(--muted) }
+
+/* Goal check */
+.meter { display: grid; gap: 6px }
+.meter-track { position: relative; height: 12px; background: var(--chip); border-radius: 6px; overflow: hidden }
+.meter-fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px }
+.meter-scale { display: flex; justify-content: space-between; font: 12px var(--f-data); color: var(--muted) }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 15px }
+.kv dt { color: var(--muted) } .kv dd { margin: 0; font-family: var(--f-data); font-variant-numeric: tabular-nums; text-align: right }
+.calc { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px }
+.calc label { width: 160px }
+.calc .out { font-family: var(--f-display); font-size: 28px; font-weight: 700 }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <div class="title-box">
+        <div class="label">Interstate tournament</div>
+        <input id="tourName" aria-label="Tournament name" value="Interstate Cycling Tour" maxlength="60">
+      </div>
+      <div class="savebar"><div class="status" id="status" role="status">Loading…</div><button class="btn ghost" type="button" id="backupBtn">Back up</button><label class="btn ghost" for="restoreFile" style="display:inline-block">Restore<input type="file" id="restoreFile" accept="application/json,.json" hidden></label></div>
+    </div>
+
+    <div class="goal">
+      <div class="goal-main">
+        <div class="label" style="color:inherit;opacity:.7">The goal · Sat 20 Mar 2027</div>
+        <div class="big">100 km <span>in</span> 3:15</div>
+        <p>That's an average of 30.8 km/h, start to finish.</p>
+      </div>
+      <div class="goal-counts">
+        <div><b class="num" id="cRace">–</b><small>days to<br>race day</small></div>
+        <div><b class="num" id="cTrain">–</b><small id="cTrainLbl">training days left<br>(last ride 7 Mar)</small></div>
+      </div>
+    </div>
+
+    <div class="strip" aria-label="Plan phases from 2 November to race day">
+      <div class="strip-bar" id="strip"></div>
+      <div class="strip-dates"><span>2 Nov</span><span>6 Feb · Ramzan</span><span>20 Mar</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">This week</div><b id="sWeekKm">0 <span>km</span></b><div class="sub" id="sWeekTarget">Plan target –</div></div>
+      <div class="stat"><div class="label">Plan sessions done</div><b id="sPlan">0 <span>/ 0</span></b><div class="sub" id="sPlanSub">Due so far –</div></div>
+      <div class="stat"><div class="label">Best long ride</div><b id="sBest">– <span>km/h</span></b><div class="sub">Rides of 80 km+ · need 30.8</div></div>
+      <div class="stat"><div class="label">Latest 10 km test</div><b id="sTest">– </b><div class="sub" id="sTestSub">PR 17:00 · next test 26 Nov</div></div>
+    </div>
+  </header>
+
+  <div class="exbar" id="exbar" hidden>Rows marked <span class="chip ex">Example</span> are samples. <button class="btn ghost" id="clearEx" type="button">Remove examples</button></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-plan" aria-selected="true" aria-controls="p-plan">Training plan</button>
+    <button role="tab" id="tab-log" aria-selected="false" aria-controls="p-log">Ride log</button>
+    <button role="tab" id="tab-race" aria-selected="false" aria-controls="p-race">Race day</button>
+  </div>
+
+  <!-- PLAN -->
+  <section class="panel" id="p-plan" role="tabpanel" aria-labelledby="tab-plan">
+    <div class="card today" id="today"></div>
+
+    <div class="grid2">
+      <div class="card coach">
+        <h3>Coach's notes</h3>
+        <p>Right now he rides about 180 km a week at roughly 24 km/h. The goal needs 30.8 km/h for over three hours. That's a big jump, so the plan builds it in three ways: more aerobic engine (long easy rides up to 120 km), a higher ceiling (threshold and hard intervals), and lots of time at 31 km/h so goal pace feels normal by February.</p>
+        <p>The real fitness is built before 6 Feb. Ramzan is for holding onto it, not adding to it. The 12 days off before the race cost very little: two weeks of rest loses only a small slice of endurance, and he'll arrive fresh.</p>
+        <p>His week: <strong>Mon swim · Tue ride · Wed strength · Thu ride · Fri swim · Sat strength or rest · Sun long ride.</strong> Every interval ride starts with 15 min easy and ends with 10 min easy. Strength is 20 min at home until 5 Feb: 3 rounds of squats, lunges, glute bridges, plank and side plank.</p>
+        <p><strong>Checkpoint:</strong> the 100 km rehearsal on 31 Jan. Under 3:20 there means 3:15 is on for race day, with a fresh body and a group to ride with.</p>
+      </div>
+      <div class="card">
+        <h3>Effort zones</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Zone</th><th>Feels like</th><th class="num">RPE</th><th class="num">Flat speed</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Easy</strong></td><td>Full sentences</td><td class="num">3–4</td><td class="num">24–27 km/h</td></tr>
+            <tr><td><strong>Tempo</strong></td><td>Short sentences</td><td class="num">5–6</td><td class="num">28–30 km/h</td></tr>
+            <tr><td><strong>Sweet spot</strong></td><td>A few words</td><td class="num">7</td><td class="num">30–32 km/h</td></tr>
+            <tr><td><strong>Threshold</strong></td><td>One word at a time</td><td class="num">8</td><td class="num">32–34 km/h</td></tr>
+            <tr><td><strong>Hard</strong></td><td>No talking</td><td class="num">9</td><td class="num">35+ km/h</td></tr>
+            <tr><td><strong>Goal pace</strong></td><td>Steady and focused</td><td class="num">6–7</td><td class="num">31 km/h</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted" style="font-size:13px;margin-top:8px">Speeds assume a flat road and little wind. Into a headwind or uphill, ride by feel (RPE), not the speedo. Speeds come from his 10 km times of 17, 19 and 20 min.</p>
+      </div>
+    </div>
+
+    <div class="card coach">
+      <h3>Swimming · 35 m pool</h3>
+      <div class="grid2" style="gap:14px 24px">
+        <div>
+          <p>Two swims a week build his engine and breathing control with zero pounding on the legs. The Monday swim also flushes out Sunday's long ride. He's a beginner, so for the first two months the swims are about technique and comfort, not distance.</p>
+          <p style="margin-top:8px"><strong>Monday</strong> is skills: kicking, breathing and stroke drills. <strong>Friday</strong> builds continuous swimming, from single lengths in November to 20 lengths (700 m) non-stop by 5 Feb.</p>
+        </div>
+        <ul class="tight">
+          <li>1 length = 35 m. The plan counts in lengths, so he never has to do maths at the wall.</li>
+          <li>Rest at the wall as long as he needs. Slow and smooth beats fast and splashy.</li>
+          <li>Breathe out underwater through the nose and mouth, so the breath in at the side is quick and easy.</li>
+          <li>Swim only when a lifeguard is on duty. If he can't yet swim one length unaided, book 4–6 lessons and use them as the swim days.</li>
+          <li>Cycling comes first. If his legs are wrecked, skip the swim, not the ride.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="plan"></div>
+  </section>
+
+  <!-- LOG -->
+  <section class="panel" id="p-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+    <div class="card chart">
+      <h3>Weekly distance · last 8 weeks</h3>
+      <div id="chart"></div>
+    </div>
+    <div class="card" id="wCard">
+      <h3 id="wTitle">Log a ride</h3>
+      <form id="wForm" novalidate>
+        <label>Date<input type="date" id="wDate" required></label>
+        <label>Type<select id="wType">
+          <option value="endurance">Endurance ride</option><option value="intervals">Intervals</option><option value="tempo">Tempo / goal pace</option>
+          <option value="hills">Hill repeats</option><option value="test">10 km test</option><option value="sim">Race rehearsal</option>
+          <option value="recovery">Recovery spin</option><option value="indoor">Indoor trainer</option><option value="swim">Swim</option><option value="strength">Strength</option><option value="rest">Rest day</option></select></label>
+        <label id="wLenWrap" hidden>Lengths (35 m)<input type="number" id="wLen" min="0" max="400" inputmode="numeric" placeholder="12"></label>
+        <label>Moving time<input id="wTime" placeholder="2:25:00" inputmode="numeric" pattern="\d{1,2}:\d{2}(:\d{2})?" aria-describedby="wTimeHint"></label>
+        <label id="wKmWrap">Distance (km)<input type="number" id="wKm" min="0" step="0.01" inputmode="decimal" placeholder="60"></label>
+        <label id="wElevWrap">Elevation (m)<input type="number" id="wElev" min="0" inputmode="numeric" placeholder="400"></label>
+        <label>Avg heart rate<input type="number" id="wHr" min="0" max="250" inputmode="numeric" placeholder="148"></label>
+        <label>Effort (RPE 1–10)<input type="number" id="wRpe" min="1" max="10" inputmode="numeric" placeholder="6"></label>
+        <label class="wide">Notes<textarea id="wNotes" rows="2" placeholder="How it felt, what you ate, wind, route"></textarea></label>
+        <div class="actions"><button class="btn" type="submit">Save ride</button><button class="btn ghost" type="button" id="wCancel" hidden>Cancel edit</button><span class="msg" id="wMsg" aria-live="polite"><span id="wTimeHint">Time as h:mm:ss, or mm:ss for a 10 km test.</span></span></div>
+      </form>
+    </div>
+    <div class="card"><h3>Rides</h3><div id="wList"><div class="empty">Rides you log appear here. Tap "Log it" on any plan session to fill the form in.</div></div></div>
+  </section>
+
+  <!-- RACE -->
+  <section class="panel" id="p-race" role="tabpanel" aria-labelledby="tab-race" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h3>Goal check</h3>
+        <div class="meter">
+          <div class="label">Best average on a ride of 80 km+</div>
+          <div class="meter-track"><div class="meter-fill" id="mFill" style="width:0%"></div></div>
+          <div class="meter-scale"><span>24 km/h · today</span><span id="mNow">–</span><span>30.8 · goal</span></div>
+        </div>
+        <dl class="kv" id="goalKv" style="margin-top:14px"></dl>
+      </div>
+      <div class="card">
+        <h3>Pacing</h3>
+        <div class="calc">
+          <label>Target time<input id="pTarget" value="3:12:00" pattern="\d{1,2}:\d{2}(:\d{2})?" inputmode="numeric"></label>
+          <div><div class="label">Average needed</div><div class="out num" id="pSpeed">–</div></div>
+        </div>
+        <div class="tbl"><table><thead><tr><th>Checkpoint</th><th class="num">Be there by</th><th class="num">Cut-off for 3:15</th></tr></thead><tbody id="pSplits"></tbody></table></div>
+        <p class="muted" style="font-size:13px;margin-top:8px">3:12 builds in a 3-minute buffer for a puncture or a bad patch of wind.</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Race-day plan</h3>
+        <ul class="tight">
+          <li><strong>First 10 km:</strong> 29–30 km/h. It will feel too easy. That's correct.</li>
+          <li><strong>Km 10–80:</strong> settle at 31–32 km/h, RPE 6–7. Sit in a group whenever there is one: drafting saves a quarter of the effort.</li>
+          <li><strong>Climbs:</strong> stay at RPE 7 or below and accept losing speed. Pedal the descents.</li>
+          <li><strong>Km 80–100:</strong> if the checkpoint times are on, empty the tank from km 90.</li>
+          <li><strong>Eat:</strong> 60–80 g carbs an hour, starting at km 10. A gel, half a banana or 3 dates every 25 min.</li>
+          <li><strong>Drink:</strong> 500–750 ml an hour with electrolytes. Two bottles plus a refill at halfway.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Last 12 days</h3>
+        <ul class="tight">
+          <li><strong>8–14 Mar:</strong> no riding. Eid: eat well and get carbs back in. 30 min walk and 15 min stretching daily.</li>
+          <li><strong>15–17 Mar:</strong> if he can get on a bike once, 30 min easy with 3 × 1 min at goal pace. If not, that's fine.</li>
+          <li><strong>18–19 Mar:</strong> carb load: rice, roti, potatoes, bananas, about 8 g of carbs per kg of body weight a day. Less fibre on the 19th.</li>
+          <li><strong>19 Mar:</strong> check tyres, chain and brakes. Pack kit, bottles and food. Early night.</li>
+          <li><strong>20 Mar:</strong> breakfast 3 hours before the start. Nothing new on race day.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" id="sCard">
+      <h3 id="sTitle">Add a race or stage</h3>
+      <form id="sForm" novalidate>
+        <label>Date<input type="date" id="sDate" required></label>
+        <label class="wide">Name<input id="sName" required maxlength="80" placeholder="100 km · Interstate ride"></label>
+        <label>From<input id="sFrom" maxlength="40" placeholder="Start town or state"></label>
+        <label>To<input id="sTo" maxlength="40" placeholder="Finish town or state"></label>
+        <label>Distance (km)<input type="number" id="sKm" min="0" step="0.1" inputmode="decimal" placeholder="100"></label>
+        <label>Elevation (m)<input type="number" id="sElev" min="0" inputmode="numeric" placeholder="800"></label>
+        <label>Finish time<input id="sTime" placeholder="3:12:40" pattern="\d{1,2}:\d{2}(:\d{2})?" inputmode="numeric"></label>
+        <label>Position<input type="number" id="sPlace" min="1" inputmode="numeric" placeholder="12"></label>
+        <label class="wide">Notes<textarea id="sNotes" rows="2" placeholder="Wind, group, how fuelling went"></textarea></label>
+        <div class="actions"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" id="sCancel" hidden>Cancel edit</button><span class="msg" id="sMsg" aria-live="polite"></span></div>
+      </form>
+    </div>
+    <div class="card"><h3>Races</h3><div id="sList"><div class="empty">Add the race above. Fill in the finish time once it's done.</div></div></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const RACE = "2027-03-20", LAST_RIDE = "2027-03-07", GOAL_KMH = 100 / 3.25, NOW_KMH = 24;
+  const TYPES = { endurance: "Endurance", intervals: "Intervals", tempo: "Tempo", hills: "Hills", test: "10 km test", sim: "Rehearsal",
+    recovery: "Recovery", indoor: "Indoor", swim: "Swim", strength: "Strength", rest: "Rest" };
+  const POOL_M = 35;
+
+  // ---------- The plan ----------
+  const PHASES = [
+    { id: "base", name: "Base", from: "2026-11-02", to: "2026-11-29", goal: "Build the engine: more easy kilometres and the first tempo work. Long ride grows from 70 to 90 km." },
+    { id: "build", name: "Build", from: "2026-11-30", to: "2026-12-27", goal: "Raise threshold and take the long ride past 100 km, with the first blocks at goal pace." },
+    { id: "specific", name: "Race-specific", from: "2026-12-28", to: "2027-01-24", goal: "Long continuous blocks at 31 km/h so goal pace feels normal. Biggest week is 11–17 Jan." },
+    { id: "peak", name: "Peak", from: "2027-01-25", to: "2027-02-05", goal: "The 100 km rehearsal on 31 Jan, then one last sharp session before fasting starts." },
+    { id: "ramadan", name: "Ramzan", from: "2027-02-06", to: "2027-03-07", goal: "Hold the fitness. Rides get shorter, hard work moves to after iftar, and nothing long is done while fasting." },
+    { id: "rest", name: "Rest & race", from: "2027-03-08", to: "2027-03-20", goal: "No training. Recover, refuel after Ramzan, and race fresh." },
+  ];
+  const AI = "After iftar", BI = "Before iftar";
+  // [day offset from Monday, type, title, detail, timing, key]
+  const WEEKS = [
+    { n: 1, start: "2026-11-02", phase: "base", km: 190, focus: "Settle the routine. Easy means easy.", s: [
+      [1, "endurance", "60 min easy + cadence drills", "Easy the whole way. Every 10 min, spin 1 min at high cadence (100+ rpm) at the same speed."],
+      [3, "tempo", "75 min with 3 × 8 min tempo", "Tempo is RPE 5–6, about 28–30 km/h on the flat. 4 min easy between."],
+      [6, "endurance", "70 km steady", "Easy zone, RPE 3–4. Eat something every 30 min from the start, even if you're not hungry."]] },
+    { n: 2, start: "2026-11-09", phase: "base", km: 205, focus: "First sweet-spot efforts.", s: [
+      [1, "intervals", "4 × 6 min sweet spot", "RPE 7, about 30–32 km/h. 3 min easy between."],
+      [3, "tempo", "80 min with 3 × 10 min tempo", "4 min easy between. Keep cadence above 85."],
+      [6, "endurance", "80 km, last 10 km at tempo", "Easy for 70 km, then lift to 28–30 km/h for the last 10."]] },
+    { n: 3, start: "2026-11-16", phase: "base", km: 225, focus: "Longest base week. Long ride reaches 90 km.", s: [
+      [1, "intervals", "3 × 10 min sweet spot", "4 min easy between."],
+      [3, "tempo", "90 min with 2 × 15 min tempo", "5 min easy between."],
+      [6, "endurance", "90 km with 2 × 10 km at 29 km/h", "Put the efforts at km 40 and km 70. Practise eating on the bike."]] },
+    { n: 4, start: "2026-11-23", phase: "base", km: 140, focus: "Recovery week + first 10 km test.", s: [
+      [1, "recovery", "45 min very easy", "RPE 2–3. Just turn the legs over."],
+      [3, "test", "10 km time trial", "Use the same flat route as his 19-min effort. 20 min warm-up with two short builds, then go hard and even. Target: under 18:30. Log the time.", "", true],
+      [6, "endurance", "60 km easy", "Relaxed. No efforts."]] },
+    { n: 5, start: "2026-11-30", phase: "build", km: 240, focus: "Threshold work starts. First taste of goal pace.", s: [
+      [1, "intervals", "4 × 8 min threshold", "RPE 8, about 32–34 km/h. 3 min easy between."],
+      [3, "intervals", "3 × 12 min sweet spot", "4 min easy between."],
+      [6, "endurance", "95 km with 3 × 10 km at goal pace", "Goal pace = 31 km/h. Efforts at km 30, 55 and 80. Fuel 60 g carbs an hour."]] },
+    { n: 6, start: "2026-12-07", phase: "build", km: 255, focus: "First 100 km of the plan.", s: [
+      [1, "intervals", "5 × 8 min threshold", "3 min easy between."],
+      [3, "intervals", "2 × 20 min sweet spot", "5 min easy between. Stay seated and smooth."],
+      [6, "endurance", "100 km with 4 × 10 km at goal pace", "Note the total time. It's the baseline for the rehearsal in January.", "", true]] },
+    { n: 7, start: "2026-12-14", phase: "build", km: 270, focus: "Biggest build week. Raise the ceiling.", s: [
+      [1, "intervals", "5 × 3 min hard + 2 × 10 min threshold", "Hard = RPE 9, 2 min easy between. Then 5 min easy, then the threshold blocks."],
+      [3, "intervals", "2 × 25 min sweet spot", "5 min easy between."],
+      [6, "endurance", "110 km, last 30 km at tempo to goal pace", "Easy for 80 km, then build from 28 to 31 km/h."]] },
+    { n: 8, start: "2026-12-21", phase: "build", km: 150, focus: "Recovery week. This is when the fitness lands.", s: [
+      [1, "recovery", "45 min easy with 4 × 30 s fast", "Full recovery between the fast bits."],
+      [3, "endurance", "60 min easy", "Easy zone only."],
+      [6, "endurance", "70 km easy", "Enjoy it. No efforts."]] },
+    { n: 9, start: "2026-12-28", phase: "specific", km: 250, focus: "Goal pace gets long and continuous.", s: [
+      [1, "intervals", "3 × 15 min threshold", "5 min easy between."],
+      [3, "tempo", "90 min with 3 × 15 min at goal pace", "31 km/h. 5 min easy between."],
+      [6, "endurance", "100 km with 40 km at goal pace", "Ride km 50 to 90 non-stop at 31 km/h. Practise drinking without slowing down.", "", true]] },
+    { n: 10, start: "2027-01-04", phase: "specific", km: 265, focus: "Hard intervals to make 31 km/h feel easier.", s: [
+      [1, "intervals", "6 × 4 min hard", "RPE 9, 35+ km/h. 3 min easy between. This lifts the ceiling."],
+      [3, "tempo", "2 × 30 min at goal pace", "5 min easy between."],
+      [6, "endurance", "110 km with 50 km at goal pace", "Goal-pace block from km 40 to 90."]] },
+    { n: 11, start: "2027-01-11", phase: "specific", km: 280, focus: "Biggest week of the plan.", s: [
+      [1, "intervals", "2 × 20 min threshold", "6 min easy between."],
+      [3, "tempo", "75 min: 4 × 10 min goal pace with surges", "Inside each block, surge for 15 s every 2 min, then settle back to 31 km/h. This is what riding in a group feels like."],
+      [6, "endurance", "120 km with 2 × 25 km at goal pace", "Longest ride of the plan. Efforts at km 40 and km 85. Fuel exactly like race day.", "", true]] },
+    { n: 12, start: "2027-01-18", phase: "specific", km: 150, focus: "Recovery week + second 10 km test.", s: [
+      [1, "recovery", "45 min easy", "RPE 2–3."],
+      [3, "test", "10 km time trial", "Same route as week 4. Target: under 18:00.", "", true],
+      [6, "endurance", "70 km easy with 3 × 5 km at goal pace", "Mostly easy."]] },
+    { n: 13, start: "2027-01-25", phase: "peak", km: 210, focus: "Dress rehearsal week.", s: [
+      [1, "intervals", "4 × 10 min threshold", "4 min easy between."],
+      [3, "tempo", "60 min with 3 × 5 min at goal pace", "Short openers. Legs should feel springy by Sunday."],
+      [6, "sim", "100 km race rehearsal", "Full race simulation: race-day breakfast, bottles, food and kit. Target under 3:20. Log the time and what he ate.", "", true]] },
+    { n: 14, start: "2027-02-01", phase: "peak", km: 110, focus: "Last normal week. Ramzan starts Saturday.", s: [
+      [1, "recovery", "60 min easy", "Recover from the rehearsal."],
+      [3, "intervals", "75 min with 3 × 12 min sweet spot", "Last full-intensity session before fasting."],
+      [6, "recovery", "40 min easy spin", "First weekend of fasting. Just spin and see how the body feels.", AI]] },
+    { n: 15, start: "2027-02-08", phase: "ramadan", km: 140, focus: "Find the rhythm: hard after iftar, easy before it.", s: [
+      [1, "intervals", "60 min with 3 × 8 min sweet spot", "Start 90 min after iftar. Drink 500 ml during the ride.", AI],
+      [3, "recovery", "45 min easy", "Time it to finish as the fast opens, so he can rehydrate straight away. Easy zone only.", BI],
+      [6, "endurance", "60 km with 2 × 10 km at goal pace", "Ride with lights on a route he knows, or ride before suhoor instead.", AI]] },
+    { n: 16, start: "2027-02-15", phase: "ramadan", km: 150, focus: "Keep one quality session a week.", s: [
+      [1, "intervals", "4 × 6 min threshold", "3 min easy between.", AI],
+      [3, "recovery", "45 min easy", "Easy zone only. Skip it if he feels dizzy or flat.", BI],
+      [6, "endurance", "70 km with 20 km at goal pace", "Goal-pace block from km 35 to 55.", AI]] },
+    { n: 17, start: "2027-02-22", phase: "ramadan", km: 155, focus: "Last long ride.", s: [
+      [1, "intervals", "5 × 4 min just above goal pace", "32–33 km/h. 3 min easy between.", AI],
+      [3, "recovery", "50 min easy", "Easy zone only.", BI],
+      [6, "endurance", "75 km with 25 km at goal pace", "Last long ride before the race.", AI, true]] },
+    { n: 18, start: "2027-03-01", phase: "ramadan", km: 90, focus: "Sharpen up. Last ride on Sunday 7 Mar.", s: [
+      [1, "tempo", "50 min with 3 × 8 min at goal pace", "4 min easy between.", AI],
+      [3, "recovery", "40 min easy with 4 × 1 min fast", "Full recovery between.", BI],
+      [6, "tempo", "60 min with 3 × 5 min at goal pace", "Last ride before the race. Finish feeling like he could do more.", AI, true]] },
+  ];
+
+  const parseDay = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const addDays = (s, n) => { const d = parseDay(s); d.setDate(d.getDate() + n); return iso(d); };
+  const todayISO = () => iso(new Date());
+  const daysBetween = (a, b) => Math.round((parseDay(b) - parseDay(a)) / 86400000);
+  const fmtDate = (s, o = { day: "numeric", month: "short" }) => parseDay(s).toLocaleDateString("en-GB", o);
+  const dow = (s) => parseDay(s).toLocaleDateString("en-GB", { weekday: "short" });
+
+  // Swims, one row per week: [Monday lengths, title, detail], [Friday lengths, title, detail]. 1 length = 35 m.
+  const RAM_SWIM = "After iftar, at least an hour after eating. Never swim while fasting: it's too easy to swallow water.";
+  const SWIMS = [
+    [[12, "Kick and breathing drills", "4 lengths easy (any stroke), 4 lengths kicking with a board, 4 lengths freestyle breathing out underwater."], [12, "12 × 1 length easy", "45 s rest at the wall after each. Count the strokes on each length."]],
+    [[14, "Side-breathing drill", "4 lengths kick with a board, 4 lengths kicking on your side with one arm out front and your face turning to breathe, 6 easy freestyle."], [14, "14 × 1 length", "30–40 s rest after each. Same easy effort the whole way."]],
+    [[14, "Catch-up drill", "6 lengths catch-up (one hand waits at the front until the other arrives), 8 lengths easy freestyle."], [16, "8 × 2 lengths (70 m)", "45 s rest after each pair. First time swimming there and back without stopping."]],
+    [[10, "Easy technique swim", "Recovery week. 10 lengths, mixing kick, catch-up and easy freestyle."], [12, "6 × 2 lengths easy", "60 s rest. Should feel easier than last week."]],
+    [[16, "Breathe every 3 strokes", "8 lengths of drills, then 8 lengths breathing every 3 strokes, so he breathes to both sides."], [18, "6 × 3 lengths (105 m)", "45 s rest after each set."]],
+    [[16, "Kick and catch-up mix", "Alternate 1 length kick, 1 length catch-up, 1 length easy freestyle. Smooth, not fast."], [20, "5 × 4 lengths (140 m)", "60 s rest after each set."]],
+    [[18, "Long, smooth strokes", "Count strokes per length. Aim for 1–2 fewer than in week 1, without kicking harder."], [20, "4 × 5 lengths (175 m)", "60 s rest after each set."]],
+    [[12, "Easy technique swim", "Recovery week. Drills and easy freestyle."], [14, "2 × 7 lengths easy", "90 s rest in between."]],
+    [[18, "Drills + 6 lengths steady", "12 lengths of mixed drills, then 6 lengths non-stop."], [22, "8 lengths non-stop + 7 × 2", "8 lengths (280 m) continuous, 2 min rest, then 7 × 2 lengths with 30 s rest."]],
+    [[18, "Bilateral breathing set", "6 × 3 lengths breathing every 3 strokes, 30 s rest."], [24, "3 × 8 lengths (280 m)", "60 s rest after each set."]],
+    [[20, "Technique + pace", "10 lengths drills, then 5 × 2 lengths a little quicker, 40 s rest."], [24, "12 lengths non-stop + 6 × 2", "12 lengths (420 m) continuous, 2 min rest, then 6 × 2 lengths steady."]],
+    [[12, "Easy technique swim", "Recovery week."], [16, "10 lengths non-stop, then 6 easy", "Should feel comfortable by now."]],
+    [[16, "Easy technique swim", "Rehearsal week, so keep it light."], [14, "Easy 14 lengths", "Loosen up for Sunday's 100 km. Nothing hard."]],
+    [[12, "Recovery swim", "The day after the 100 km rehearsal. Easy lengths, lots of rest. Great for the legs."], [20, "20 lengths non-stop (700 m)", "Milestone swim before Ramzan. Take it slow and steady.", true]],
+    [[10, "Easy swim, 20 min", RAM_SWIM, AI], [12, "8 non-stop + 4 drill", RAM_SWIM, AI]],
+    [[10, "Easy swim, 20 min", RAM_SWIM, AI], [12, "8 non-stop + 4 drill", RAM_SWIM, AI]],
+    [[10, "Easy swim, 20 min", RAM_SWIM, AI], [14, "10 non-stop + 4 drill", RAM_SWIM, AI]],
+    [[10, "Easy swim, 20 min", RAM_SWIM, AI], [10, "Last swim before the race", "Easy and relaxed. " + RAM_SWIM, AI]],
+  ];
+
+  const SESSIONS = [];
+  WEEKS.forEach((w) => w.s.forEach(([off, type, title, detail, timing, key]) => {
+    SESSIONS.push({ id: `w${w.n}-${off}`, week: w.n, date: addDays(w.start, off), type, title, detail, timing: timing || "", key: !!key });
+  }));
+  SWIMS.forEach((pair, i) => pair.forEach(([lengths, title, detail, x, y], j) => {
+    const w = WEEKS[i], off = j === 0 ? 0 : 4, timing = x === AI ? AI : "", key = x === true || y === true;
+    SESSIONS.push({ id: `w${w.n}-${off}`, week: w.n, date: addDays(w.start, off), type: "swim", lengths, title, detail: `${lengths} lengths · ${lengths * POOL_M} m. ${detail}`, timing, key });
+  }));
+  SESSIONS.sort((a, b) => a.date.localeCompare(b.date));
+  const sessionsFor = (n) => SESSIONS.filter((s) => s.week === n);
+
+  // ---------- State ----------
+  let db = null, canWrite = true;
+  let workouts = [], stages = [], meta = null, done = {};
+  let editW = null, editS = null, pendingDel = null, writeChain = Promise.resolve();
+
+  const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const toSec = (t) => { if (!t) return null; const p = String(t).trim().split(":").map(Number); if (!p.length || p.some((x) => !Number.isFinite(x))) return null;
+    return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : null; };
+  // Two-part input: "2:25" on a ride means h:mm, "45:00" or any 10 km test means mm:ss
+  const rideSec = (t, type) => { const p = String(t || "").trim().split(":"); if (p.length === 2 && type !== "test" && +p[0] < 10) return toSec(t + ":00"); return toSec(t); };
+  const fmtSec = (s, short) => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return h ? `${h}:${String(m).padStart(2, "0")}${short ? "" : ":" + String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; };
+  const secsOf = (w) => w.secs ?? (w.mins ? w.mins * 60 : null);
+  const kmh = (w) => { const s = secsOf(w); return s && w.km ? w.km / (s / 3600) : null; };
+  const weekStart = (d) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  const currentWeek = () => { const t = todayISO(); return WEEKS.find((w) => t >= w.start && t <= addDays(w.start, 6)); };
+
+  $("wDate").value = todayISO();
+
+  // ---------- Tabs ----------
+  const TABS = { plan: ["tab-plan", "p-plan"], log: ["tab-log", "p-log"], race: ["tab-race", "p-race"] };
+  function showTab(key, focus) {
+    Object.entries(TABS).forEach(([k, [t, p]]) => { $(t).setAttribute("aria-selected", k === key); $(t).tabIndex = k === key ? 0 : -1; $(p).hidden = k !== key; });
+    if (focus) $(TABS[key][0]).focus();
+    try { localStorage.setItem("tab", key); } catch (e) {}
+  }
+  Object.entries(TABS).forEach(([k, [t]]) => $(t).addEventListener("click", () => showTab(k)));
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    const keys = Object.keys(TABS), cur = keys.findIndex((k) => $(TABS[k][0]).getAttribute("aria-selected") === "true");
+    if (e.key === "ArrowRight") showTab(keys[(cur + 1) % keys.length], true);
+    if (e.key === "ArrowLeft") showTab(keys[(cur + keys.length - 1) % keys.length], true);
+  });
+  { const h = location.hash.slice(1); let saved = null; try { saved = localStorage.getItem("tab"); } catch (e) {}
+    showTab(TABS[h] ? h : TABS[saved] ? saved : "plan"); }
+
+  // ---------- Header ----------
+  function renderHeader() {
+    const t = todayISO();
+    const toRace = daysBetween(t, RACE), toLast = daysBetween(t, LAST_RIDE);
+    $("cRace").textContent = toRace > 0 ? toRace : toRace === 0 ? "Today" : "Done";
+    $("cTrain").textContent = Math.max(0, toLast + 1);
+    if (toLast < 0) $("cTrainLbl").innerHTML = "training days left<br>Rest &amp; refuel now";
+
+    const start = PHASES[0].from, total = daysBetween(start, RACE) + 1;
+    let html = PHASES.map((p) => { const len = daysBetween(p.from, p.to) + 1;
+      return `<div class="seg" style="width:${(len / total) * 100}%;background:var(--ph-${p.id})" title="${esc(p.name)} · ${fmtDate(p.from)} – ${fmtDate(p.to)}">${esc(p.name)}</div>`; }).join("");
+    const pos = daysBetween(start, t);
+    if (pos >= 0 && pos <= total) html += `<div class="now" style="left:calc(${(pos / total) * 100}% - 1px)" title="Today"></div>`;
+    $("strip").innerHTML = html;
+  }
+
+  function renderStats() {
+    const now = new Date(), ws = weekStart(now);
+    let km = 0;
+    workouts.forEach((w) => { const d = parseDay(w.date); if (d >= ws && d <= now) km += w.km || 0; });
+    const cw = currentWeek();
+    $("sWeekKm").innerHTML = `${Math.round(km)} <span>km</span>`;
+    $("sWeekTarget").textContent = cw ? `Week ${cw.n} target ~${cw.km} km` : "No plan week right now";
+
+    const t = todayISO(), due = SESSIONS.filter((s) => s.date <= t), doneN = SESSIONS.filter((s) => done[s.id]).length;
+    $("sPlan").innerHTML = `${doneN} <span>/ ${SESSIONS.length}</span>`;
+    $("sPlanSub").textContent = due.length ? `${due.filter((s) => done[s.id]).length} of ${due.length} due so far` : "First session Tue 3 Nov";
+
+    const best = bestLong();
+    $("sBest").innerHTML = best ? `${best.v.toFixed(1)} <span>km/h</span>` : `– <span>km/h</span>`;
+    const tests = workouts.filter((w) => w.type === "test" && secsOf(w)).sort((a, b) => b.date.localeCompare(a.date));
+    $("sTest").textContent = tests.length ? fmtSec(secsOf(tests[0])) : "–";
+    const nextTest = SESSIONS.find((s) => s.type === "test" && s.date >= t);
+    $("sTestSub").textContent = `PR 17:00${nextTest ? " · next test " + fmtDate(nextTest.date) : ""}`;
+
+    $("exbar").hidden = !canWrite || !(workouts.some((w) => w.example) || stages.some((s) => s.example));
+  }
+  function bestLong() { let b = null; workouts.forEach((w) => { if ((w.km || 0) >= 80) { const v = kmh(w); if (v && (!b || v > b.v)) b = { v, w }; } }); return b; }
+
+  // ---------- Plan ----------
+  function sessionRow(s) {
+    const t = todayISO(), isDone = !!done[s.id];
+    return `<div class="sess" data-today="${s.date === t}" data-done="${isDone}">
+      <input type="checkbox" class="check" data-sid="${s.id}" ${isDone ? "checked" : ""} ${canWrite && db ? "" : "disabled"} aria-label="Mark ${esc(s.title)} on ${fmtDate(s.date)} done">
+      <div class="day"><b>${dow(s.date)}</b>${fmtDate(s.date)}</div>
+      <div class="body">${s.key ? '<span class="chip key">Key session</span>' : ""}${s.timing ? `<span class="chip fast">${esc(s.timing)}</span>` : ""}<strong>${esc(s.title)}</strong><p>${esc(s.detail)}</p></div>
+      <button class="logbtn" type="button" data-log="${s.id}">Log it</button>
+    </div>`;
+  }
+  function ring(pct) {
+    const r = 13, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="${r}" style="stroke:var(--chip)"/><circle cx="17" cy="17" r="${r}" style="stroke:var(--good)" stroke-dasharray="${c * pct} ${c}" transform="rotate(-90 17 17)" stroke-linecap="round"/></svg>`;
+  }
+  let openWeeks = null;
+  function renderPlan() {
+    const cw = currentWeek(), t = todayISO();
+    if (openWeeks === null) { openWeeks = new Set(); const first = cw ? cw.n : (t < WEEKS[0].start ? 1 : null); if (first) { openWeeks.add(first); if (first < WEEKS.length) openWeeks.add(first + 1); } }
+    const RAMADAN_NOTE = `<div class="phase-note"><h4>Riding while fasting</h4><ul class="tight">
+      <li>Hard sessions start 90–120 min after iftar: dates and water first, then a proper meal, then ride.</li>
+      <li>Easy rides before iftar stay short (under an hour) and gentle, timed to finish as the fast opens.</li>
+      <li>Drink 2.5–3 litres between iftar and suhoor, with electrolytes. Suhoor: oats, eggs, roti, bananas, dates.</li>
+      <li>Nothing longer than an hour while fasting. Dizzy, headache or very flat: stop and skip the session.</li>
+      <li>Swims are short and easy, and only after iftar. Never swim while fasting.</li>
+      <li>Strength drops to once a week. Sleep matters more than any session.</li></ul></div>`;
+    const html = PHASES.filter((p) => p.id !== "rest").map((p) => {
+      const weeks = WEEKS.filter((w) => w.phase === p.id);
+      return `<div class="phase"><div class="phase-head"><div class="bar" style="background:var(--ph-${p.id})"></div><div>
+        <div class="label">${fmtDate(p.from)} – ${fmtDate(p.to)}</div><h3>${esc(p.name)}</h3><p>${esc(p.goal)}</p></div></div>
+        ${p.id === "ramadan" ? RAMADAN_NOTE : ""}
+        ${weeks.map((w) => {
+          const ss = sessionsFor(w.n), d = ss.filter((s) => done[s.id]).length;
+          return `<details class="week" data-week="${w.n}" data-current="${cw && cw.n === w.n}" ${openWeeks.has(w.n) ? "open" : ""}>
+            <summary><div class="wk-title"><h4>Week ${w.n}</h4><span class="dates">${fmtDate(w.start)} – ${fmtDate(addDays(w.start, 6))}</span>${cw && cw.n === w.n ? '<span class="chip key">This week</span>' : ""}</div>
+            <div class="wk-right"><span>~${w.km} km · ${ss.filter((s) => s.type === "swim").length} swims</span>${ring(d / ss.length)}<span class="num">${d}/${ss.length}</span><span class="chev" aria-hidden="true">▶</span></div>
+            <div class="wk-focus">${esc(w.focus)}</div></summary>
+            <div class="sessions">${ss.map(sessionRow).join("")}</div></details>`;
+        }).join("")}</div>`;
+    }).join("");
+    const rest = PHASES[PHASES.length - 1];
+    $("plan").innerHTML = `<div style="display:grid;gap:26px">${html}<div class="phase"><div class="phase-head"><div class="bar" style="background:var(--ph-rest)"></div><div>
+      <div class="label">${fmtDate(rest.from)} – ${fmtDate(rest.to)}</div><h3>${esc(rest.name)}</h3><p>${esc(rest.goal)} The full checklist is on the Race day tab.</p></div></div></div></div>`;
+  }
+
+  function renderToday() {
+    const t = todayISO(), cw = currentWeek();
+    const today = SESSIONS.find((s) => s.date === t), next = SESSIONS.find((s) => s.date > t);
+    const phase = PHASES.find((p) => t >= p.from && t <= p.to);
+    let h;
+    if (today) {
+      const isDone = !!done[today.id];
+      h = `<div class="when"><b>${parseDay(t).getDate()}</b><span>${fmtDate(t, { month: "short" })}</span></div><div>
+        <div class="label">Today · Week ${today.week}${phase ? " · " + esc(phase.name) : ""}</div>
+        <h2>${esc(today.title)}</h2>${today.timing ? `<span class="chip fast">${esc(today.timing)}</span>` : ""}<p class="detail">${esc(today.detail)}</p>
+        <div class="btns"><button class="btn" type="button" data-toggle="${today.id}" ${canWrite && db ? "" : "disabled"}>${isDone ? "Done ✓ · undo" : "Mark done"}</button><button class="btn ghost" type="button" data-log="${today.id}">Log it</button></div></div>`;
+    } else if (t > LAST_RIDE) {
+      const d = daysBetween(t, RACE);
+      h = `<div class="when"><b>${Math.max(d, 0)}</b><span>days</span></div><div><div class="label">Rest &amp; race</div>
+        <h2>${d > 0 ? "No riding. Recover and refuel." : d === 0 ? "Race day. Ride your plan." : "Race done"}</h2>
+        <p class="detail">${d > 0 ? "The work is banked. Eat well, sleep, stretch, walk. The last-12-days checklist is on the Race day tab." : "Log the result on the Race day tab."}</p>
+        <div class="btns"><button class="btn ghost" type="button" data-tab="race">Open race day</button></div></div>`;
+    } else {
+      const d = next ? daysBetween(t, next.date) : 0;
+      h = `<div class="when"><b>${parseDay(t).getDate()}</b><span>${fmtDate(t, { month: "short" })}</span></div><div>
+        <div class="label">Today${cw ? " · Week " + cw.n : ""}${phase ? " · " + esc(phase.name) : ""}</div>
+        <h2>Rest day</h2><p class="detail">${t < WEEKS[0].start ? "The plan starts soon." : "Recovery is training too. Stretch, eat well, sleep 8 hours."}${next ? ` Next: <strong>${esc(next.title)}</strong> on ${dow(next.date)} ${fmtDate(next.date)}${d === 1 ? " (tomorrow)" : ""}.` : ""}</p>
+        ${cw && cw.n <= 14 && t <= "2027-02-05" ? '<p class="detail muted" style="margin-top:6px">Good day for the 20 min strength routine.</p>' : ""}</div>`;
+    }
+    $("today").innerHTML = h;
+  }
+
+  async function toggleDone(sid) {
+    if (!db || !canWrite) return;
+    const nextDone = { ...done };
+    if (nextDone[sid]) delete nextDone[sid]; else nextDone[sid] = todayISO();
+    done = nextDone; renderAllPlan();
+    writeChain = writeChain.then(() => db.doc("progress/plan").set({ done: nextDone })).catch((e) => { $("status").textContent = errText(e); });
+  }
+
+  // ---------- Log ----------
+  function renderChart() {
+    const weeks = [], ws = weekStart(new Date());
+    for (let i = 7; i >= 0; i--) { const d = new Date(ws); d.setDate(d.getDate() - i * 7); weeks.push({ start: d, km: 0, target: (WEEKS.find((w) => w.start === iso(d)) || {}).km || null }); }
+    workouts.forEach((w) => { const d = parseDay(w.date); const wk = weeks.find((x) => { const e = new Date(x.start); e.setDate(e.getDate() + 7); return d >= x.start && d < e; }); if (wk) wk.km += w.km || 0; });
+    const Wd = 640, H = 210, L = 40, B = 26, T = 16, R = 8;
+    const max = Math.max(100, ...weeks.map((w) => Math.max(w.km, w.target || 0)));
+    const step = max > 400 ? 100 : 50, top = Math.ceil(max / step) * step;
+    const y = (v) => T + (H - T - B) * (1 - v / top), bw = (Wd - L - R) / weeks.length;
+    let s = `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="Kilometres ridden per week for the last 8 weeks, with plan targets">`;
+    for (let v = 0; v <= top; v += step) s += `<line x1="${L}" x2="${Wd - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+    weeks.forEach((w, i) => {
+      const x = L + i * bw + bw * 0.18, cur = i === weeks.length - 1, cx = x + bw * 0.32;
+      s += `<rect x="${x}" y="${y(w.km)}" width="${bw * 0.64}" height="${Math.max(y(0) - y(w.km), 0)}" rx="2" fill="${cur ? "var(--jersey)" : "var(--accent)"}"><title>${Math.round(w.km)} km${w.target ? " of ~" + w.target : ""}</title></rect>`;
+      if (w.target) s += `<line x1="${x - 3}" x2="${x + bw * 0.64 + 3}" y1="${y(w.target)}" y2="${y(w.target)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 3"/>`;
+      if (w.km > 0) s += `<text x="${cx}" y="${Math.min(y(w.km), w.target ? y(w.target) : 1e9) - 5}" text-anchor="middle" style="fill:var(--ink)">${Math.round(w.km)}</text>`;
+      s += `<text x="${cx}" y="${H - 8}" text-anchor="middle">${cur ? "This wk" : w.start.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</text>`;
+    });
+    $("chart").innerHTML = s + `</svg><p class="muted" style="font-size:13px;margin-top:6px">Dashed line = plan target for that week.</p>`;
+  }
+
+  function opsHtml(kind, id) {
+    if (!canWrite || !db) return "";
+    const c = pendingDel === kind + id;
+    return `<div class="ops"><button data-edit="${kind}" data-id="${esc(id)}" type="button">Edit</button><button data-del="${kind}" data-id="${esc(id)}" type="button" class="${c ? "confirm" : ""}">${c ? "Confirm delete" : "Delete"}</button></div>`;
+  }
+  function renderWorkouts() {
+    const list = [...workouts].sort((a, b) => b.date.localeCompare(a.date) || (b.created || 0) - (a.created || 0));
+    if (!list.length) { $("wList").innerHTML = `<div class="empty">Rides you log appear here. Tap "Log it" on any plan session to fill the form in.</div>`; return; }
+    $("wList").innerHTML = list.map((w) => {
+      const sp = kmh(w), secs = secsOf(w);
+      const m = w.type === "swim" ? [secs ? fmtSec(secs) : "", w.lengths ? `${w.lengths} lengths · ${w.lengths * POOL_M} m` : "",
+        secs && w.lengths ? `${fmtSec(secs / (w.lengths * POOL_M / 100))} /100 m` : "", w.rpe ? `RPE ${w.rpe}` : ""].filter(Boolean) : [secs ? fmtSec(secs) : "", w.km ? `${w.km} km` : "", sp ? `<span class="${sp >= GOAL_KMH ? "fast" : ""}">${sp.toFixed(1)} km/h</span>` : "", w.elev ? `↑${w.elev} m` : "", w.hr ? `${w.hr} bpm` : "", w.rpe ? `RPE ${w.rpe}` : ""].filter(Boolean);
+      return `<div class="row"><div class="date">${fmtDate(w.date, { day: "numeric", month: "short", year: "2-digit" })}</div><div class="main">${w.example ? '<span class="chip ex">Example</span>' : ""}<span class="chip">${esc(TYPES[w.type] || w.type)}</span><div class="meta">${m.map((x) => `<span>${x.startsWith("<span") ? x : esc(x)}</span>`).join("")}</div>${w.notes ? `<div class="notes">${esc(w.notes)}</div>` : ""}</div>${opsHtml("w", w.id)}</div>`;
+    }).join("");
+  }
+
+  // ---------- Race ----------
+  function renderGoal() {
+    const best = bestLong();
+    const pct = best ? Math.max(0, Math.min(1, (best.v - NOW_KMH) / (GOAL_KMH - NOW_KMH))) : 0;
+    $("mFill").style.width = `${pct * 100}%`;
+    $("mNow").textContent = best ? `${best.v.toFixed(1)} · best` : "no 80 km ride yet";
+    const longest = workouts.reduce((m, w) => Math.max(m, w.km || 0), 0);
+    const reh = workouts.filter((w) => w.type === "sim" && secsOf(w)).sort((a, b) => b.date.localeCompare(a.date))[0];
+    const tests = workouts.filter((w) => w.type === "test" && secsOf(w)).sort((a, b) => a.date.localeCompare(b.date));
+    const rows = [
+      ["Longest ride so far", longest ? `${longest} km` : "–"],
+      ["Best 80 km+ average", best ? `${best.v.toFixed(1)} km/h` : "–"],
+      ["Gap to goal pace", best ? (best.v >= GOAL_KMH ? "On pace ✓" : `${(GOAL_KMH - best.v).toFixed(1)} km/h`) : "–"],
+      ["10 km tests", tests.length ? tests.map((x) => fmtSec(secsOf(x))).join(" → ") : "First one 26 Nov"],
+      ["100 km rehearsal (31 Jan)", reh ? `${fmtSec(secsOf(reh))}${secsOf(reh) <= 3 * 3600 + 20 * 60 ? " ✓ on track" : ""}` : "Target under 3:20"],
+    ];
+    $("goalKv").innerHTML = rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+  }
+  function renderPacing() {
+    const sec = toSec($("pTarget").value.length <= 4 ? $("pTarget").value + ":00" : $("pTarget").value);
+    const limit = 3 * 3600 + 15 * 60;
+    if (!sec || sec < 3600) { $("pSpeed").textContent = "–"; $("pSplits").innerHTML = ""; return; }
+    $("pSpeed").textContent = `${(100 / (sec / 3600)).toFixed(1)} km/h`;
+    $("pSplits").innerHTML = [25, 50, 75, 100].map((k) => `<tr><td>${k} km</td><td class="num">${fmtSec(sec * k / 100)}</td><td class="num">${fmtSec(limit * k / 100)}</td></tr>`).join("");
+  }
+  $("pTarget").addEventListener("input", renderPacing);
+
+  function renderStages() {
+    const list = [...stages].sort((a, b) => a.date.localeCompare(b.date));
+    if (!list.length) { $("sList").innerHTML = `<div class="empty">Add the race above. Fill in the finish time once it's done.</div>`; return; }
+    $("sList").innerHTML = list.map((s) => {
+      const sec = toSec(s.time), sp = sec && s.km ? s.km / (sec / 3600) : null;
+      const m = [s.from && s.to ? `${s.from} → ${s.to}` : s.from || s.to || "", s.km ? `${s.km} km` : "", s.elev ? `↑${s.elev} m` : "", s.time ? `Time ${s.time}` : "", sp ? `${sp.toFixed(1)} km/h avg` : "", s.place ? `P${s.place}` : ""].filter(Boolean);
+      return `<div class="row"><div class="date">${fmtDate(s.date, { day: "numeric", month: "short", year: "2-digit" })}</div><div class="main">${s.example ? '<span class="chip ex">Example</span>' : ""}<span class="chip ${s.time ? "done" : ""}">${s.time ? "Raced" : "Upcoming"}</span><strong>${esc(s.name)}</strong><div class="meta">${m.map((x) => `<span>${esc(x)}</span>`).join("")}</div>${s.notes ? `<div class="notes">${esc(s.notes)}</div>` : ""}</div>${opsHtml("s", s.id)}</div>`;
+    }).join("");
+  }
+
+  // ---------- Render orchestration ----------
+  function captureOpen() { document.querySelectorAll("details.week").forEach((d) => { const n = +d.dataset.week; if (d.open) openWeeks.add(n); else openWeeks.delete(n); }); }
+  function renderAllPlan() { if (openWeeks) captureOpen(); renderPlan(); renderToday(); renderStats(); }
+  function renderAll() { renderHeader(); renderAllPlan(); renderChart(); renderWorkouts(); renderGoal(); renderPacing(); renderStages(); }
+  renderAll();
+
+  // ---------- Forms ----------
+  function setMsg(id, text, err) { $(id).textContent = text; $(id).className = "msg" + (err ? " err" : ""); }
+  function errText(e) { return e && e.code === "quota_exceeded" ? "The log is full. Delete some old entries and try again." : canWrite ? "Couldn't save. Check your connection and try again." : "You can view this log but not change it."; }
+
+  function syncType() { const swim = $("wType").value === "swim"; $("wLenWrap").hidden = !swim; $("wKmWrap").hidden = swim; $("wElevWrap").hidden = swim; }
+  $("wType").addEventListener("change", syncType);
+  function resetW() { editW = null; $("wForm").reset(); $("wDate").value = todayISO(); $("wTitle").textContent = "Log a ride"; $("wCancel").hidden = true; syncType(); }
+  function resetS() { editS = null; $("sForm").reset(); $("sTitle").textContent = "Add a race or stage"; $("sCancel").hidden = true; }
+  $("wCancel").addEventListener("click", resetW);
+  $("sCancel").addEventListener("click", resetS);
+
+  $("wForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!db) return setMsg("wMsg", "Saving isn't available in this view.", true);
+    if (!$("wDate").value) return setMsg("wMsg", "Pick a date for the ride.", true);
+    const type = $("wType").value, timeStr = $("wTime").value.trim(), secs = timeStr ? rideSec(timeStr, type) : null;
+    if (timeStr && !secs) return setMsg("wMsg", "Enter the time as h:mm:ss (e.g. 2:25:00), or mm:ss for a 10 km test.", true);
+    const prev = editW ? workouts.find((w) => w.id === editW) : null;
+    const swim = type === "swim";
+    const body = { date: $("wDate").value, type, secs, mins: secs ? Math.round(secs / 60) : null, km: swim ? null : num($("wKm").value), elev: swim ? null : num($("wElev").value),
+      lengths: swim ? num($("wLen").value) : null, hr: num($("wHr").value), rpe: num($("wRpe").value), notes: $("wNotes").value.trim(), created: prev ? prev.created || Date.now() : Date.now() };
+    if (body.rpe != null) body.rpe = Math.min(10, Math.max(1, Math.round(body.rpe)));
+    if (prev && prev.session) body.session = prev.session;
+    if (!prev && pendingSession) body.session = pendingSession;
+    try {
+      await (editW ? db.collection("workouts").doc(editW) : db.collection("workouts").doc()).set(body);
+      if (!prev && pendingSession && !done[pendingSession]) await toggleDone(pendingSession);
+      const what = swim ? "Swim" : "Ride";
+      setMsg("wMsg", editW ? `${what} updated` : pendingSession ? `${what} saved and session ticked off` : `${what} saved`);
+      pendingSession = null; resetW();
+    } catch (err) { setMsg("wMsg", errText(err), true); }
+  });
+
+  $("sForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!db) return setMsg("sMsg", "Saving isn't available in this view.", true);
+    if (!$("sDate").value || !$("sName").value.trim()) return setMsg("sMsg", "Add a date and a name.", true);
+    if ($("sTime").value.trim() && !toSec($("sTime").value)) return setMsg("sMsg", "Enter the finish time as h:mm:ss.", true);
+    const body = { date: $("sDate").value, name: $("sName").value.trim(), from: $("sFrom").value.trim(), to: $("sTo").value.trim(), km: num($("sKm").value),
+      elev: num($("sElev").value), time: $("sTime").value.trim(), place: num($("sPlace").value), notes: $("sNotes").value.trim() };
+    try {
+      await (editS ? db.collection("stages").doc(editS) : db.collection("stages").doc()).set(body);
+      setMsg("sMsg", editS ? "Updated" : "Saved"); resetS();
+    } catch (err) { setMsg("sMsg", errText(err), true); }
+  });
+
+  let pendingSession = null;
+  function logSession(sid) {
+    const s = SESSIONS.find((x) => x.id === sid); if (!s) return;
+    resetW(); pendingSession = sid;
+    $("wDate").value = s.date;
+    $("wType").value = TYPES[s.type] ? s.type : "endurance"; syncType();
+    const kmMatch = s.title.match(/^(\d+) km/); if (kmMatch) $("wKm").value = kmMatch[1];
+    if (s.lengths) $("wLen").value = s.lengths;
+    $("wNotes").value = `Plan wk ${s.week}: ${s.title}`;
+    $("wTitle").textContent = `Log: ${s.title}`;
+    showTab("log");
+    setMsg("wMsg", "Fill in time, distance and effort, then save. The session gets ticked off.");
+    $("wCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("wTime").focus({ preventScroll: true });
+  }
+
+  document.addEventListener("change", (e) => { const c = e.target.closest(".check[data-sid]"); if (c) toggleDone(c.dataset.sid); });
+  document.addEventListener("click", async (e) => {
+    const tg = e.target.closest("[data-toggle]"), lg = e.target.closest("[data-log]"), tb = e.target.closest("[data-tab]");
+    const ed = e.target.closest("[data-edit]"), dl = e.target.closest("[data-del]");
+    if (tg) return toggleDone(tg.dataset.toggle);
+    if (lg) return logSession(lg.dataset.log);
+    if (tb) return showTab(tb.dataset.tab);
+    if (ed) {
+      const id = ed.dataset.id;
+      if (ed.dataset.edit === "w") {
+        const w = workouts.find((x) => x.id === id); if (!w) return;
+        pendingSession = null; editW = id; $("wDate").value = w.date; $("wType").value = TYPES[w.type] ? w.type : "endurance";
+        $("wTime").value = secsOf(w) ? (w.type === "test" && secsOf(w) < 3600 ? fmtSec(secsOf(w)) : fmtSec(secsOf(w)).padStart(7, "0:")) : "";
+        $("wKm").value = w.km ?? ""; $("wElev").value = w.elev ?? ""; $("wLen").value = w.lengths ?? ""; syncType(); $("wHr").value = w.hr ?? ""; $("wRpe").value = w.rpe ?? ""; $("wNotes").value = w.notes || "";
+        $("wTitle").textContent = "Edit ride"; $("wCancel").hidden = false; $("wCard").scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        const s = stages.find((x) => x.id === id); if (!s) return;
+        editS = id; $("sDate").value = s.date; $("sName").value = s.name; $("sFrom").value = s.from || ""; $("sTo").value = s.to || ""; $("sKm").value = s.km ?? "";
+        $("sElev").value = s.elev ?? ""; $("sTime").value = s.time || ""; $("sPlace").value = s.place ?? ""; $("sNotes").value = s.notes || "";
+        $("sTitle").textContent = "Edit"; $("sCancel").hidden = false; $("sCard").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else if (dl) {
+      const key = dl.dataset.del + dl.dataset.id;
+      if (pendingDel !== key) { pendingDel = key; renderWorkouts(); renderStages(); return; }
+      pendingDel = null;
+      try { await db.collection(dl.dataset.del === "w" ? "workouts" : "stages").doc(dl.dataset.id).delete(); }
+      catch (err) { setMsg(dl.dataset.del === "w" ? "wMsg" : "sMsg", errText(err), true); renderWorkouts(); renderStages(); }
+    } else if (pendingDel && !e.target.closest(".ops")) { pendingDel = null; renderWorkouts(); renderStages(); }
+  });
+
+  let exArmed = false;
+  $("clearEx").addEventListener("click", async () => {
+    if (!exArmed) { exArmed = true; $("clearEx").textContent = "Tap again to remove"; return; }
+    exArmed = false; $("clearEx").textContent = "Remove examples";
+    for (const [c, id] of [...workouts.filter((w) => w.example).map((w) => ["workouts", w.id]), ...stages.filter((s) => s.example).map((s) => ["stages", s.id])]) {
+      try { await db.collection(c).doc(id).delete(); } catch (err) {}
+    }
+  });
+
+  let nameTimer = null;
+  $("tourName").addEventListener("input", () => {
+    clearTimeout(nameTimer);
+    nameTimer = setTimeout(async () => { const v = $("tourName").value.trim(); if (!db || !canWrite || !v || (meta && meta.name === v)) return; try { await db.doc("meta/tournament").set({ name: v }); } catch (e) {} }, 800);
+  });
+
+  // Roll the "today" view over at midnight if the page stays open
+  let lastDay = todayISO();
+  setInterval(() => { if (todayISO() !== lastDay) { lastDay = todayISO(); openWeeks = null; renderAll(); } }, 60000);
+
+  // ---------- Data (saved in this browser) ----------
+  const KEY = "stagelog_v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch (e) { return null; } };
+  let store = load();
+  if (!store) store = { stages: { "race-2027-03-20": { date: "2027-03-20", name: "100 km · Interstate ride", from: "", to: "", km: 100, elev: null, time: "", place: null, notes: "Goal: under 3:15 (30.8 km/h). Target 3:12." } } };
+  const listeners = [];
+  const META = { fromCache: false, hasPendingWrites: false };
+  let saveOk = true;
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(store)); saveOk = true; } catch (e) { saveOk = false; }
+    listeners.forEach((f) => f()); showSaved();
+  }
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  function docRef(col, id) {
+    return {
+      async set(d) { (store[col] = store[col] || {})[id] = JSON.parse(JSON.stringify(d)); persist(); if (!saveOk) throw { code: "unavailable" }; },
+      async delete() { if (store[col]) delete store[col][id]; persist(); },
+      onSnapshot(next) { const f = () => { const v = store[col] && store[col][id]; next({ id, exists: !!v, data: () => v, metadata: META }); }; listeners.push(f); f(); return () => {}; },
+    };
+  }
+  db = {
+    collection: (c) => ({
+      doc: (id) => docRef(c, id || newId()),
+      onSnapshot(next) { const f = () => { const o = store[c] || {}; next({ docs: Object.keys(o).map((id) => ({ id, exists: true, data: () => o[id], metadata: META })), metadata: META }); }; listeners.push(f); f(); return () => {}; },
+    }),
+    doc: (p) => { const [c, id] = p.split("/"); return docRef(c, id); },
+  };
+  function showSaved() { $("status").textContent = saveOk ? "Saved on this device" : "This browser isn't saving. Turn off private browsing."; }
+  window.addEventListener("storage", (e) => { if (e.key === KEY) { store = load() || {}; listeners.forEach((f) => f()); } });
+
+  db.collection("workouts").onSnapshot((snap) => { workouts = snap.docs.map((d) => ({ id: d.id, ...d.data() })); renderStats(); renderChart(); renderWorkouts(); renderGoal(); });
+  db.collection("stages").onSnapshot((snap) => { stages = snap.docs.map((d) => ({ id: d.id, ...d.data() })); renderStats(); renderStages(); });
+  db.doc("progress/plan").onSnapshot((snap) => { done = (snap.exists && snap.data().done) || {}; renderAllPlan(); });
+  db.doc("meta/tournament").onSnapshot((snap) => { meta = snap.exists ? snap.data() : null; if (meta && meta.name && document.activeElement !== $("tourName")) $("tourName").value = meta.name; });
+  try { if (!localStorage.getItem(KEY)) localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { saveOk = false; }
+  renderAll(); showSaved();
+
+  // Backup and restore
+  $("backupBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ app: "stage-log", version: 1, savedAt: new Date().toISOString(), data: store }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `stage-log-backup-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    $("status").textContent = "Backup file saved";
+  });
+  $("restoreFile").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      const j = JSON.parse(await f.text());
+      if (!j || j.app !== "stage-log" || typeof j.data !== "object") throw 0;
+      store = j.data; openWeeks = null; persist(); renderAll();
+      $("status").textContent = `Restored backup from ${j.savedAt ? j.savedAt.slice(0, 10) : "file"}`;
+    } catch (err) { $("status").textContent = "That file isn't a Stage Log backup."; }
+    e.target.value = "";
+  });
+})();
+</script>
+</body>
+</html>
