@@ -231,7 +231,7 @@ textarea { resize: vertical; min-height: 40px }
       </div>
       <div class="goal-counts">
         <div><b class="num" id="cRace">–</b><small>days to<br>race day</small></div>
-        <div><b class="num" id="cTrain">–</b><small id="cTrainLbl">training days left<br>(last ride 7 Mar)</small></div>
+        <div><b class="num" id="cTrain">–</b><small id="cTrainLbl">training days left<br>(last ride 6 Mar)</small></div>
       </div>
     </div>
 
@@ -244,7 +244,7 @@ textarea { resize: vertical; min-height: 40px }
       <div class="stat"><div class="label">This week</div><b id="sWeekKm">0 <span>km</span></b><div class="sub" id="sWeekTarget">Plan target –</div></div>
       <div class="stat"><div class="label">Plan sessions done</div><b id="sPlan">0 <span>/ 0</span></b><div class="sub" id="sPlanSub">Due so far –</div></div>
       <div class="stat"><div class="label">Best long ride</div><b id="sBest">– <span>km/h</span></b><div class="sub">Rides of 80 km+ · need 30.8</div></div>
-      <div class="stat"><div class="label">Latest 10 km test</div><b id="sTest">– </b><div class="sub" id="sTestSub">PR 17:00 · next test 26 Nov</div></div>
+      <div class="stat"><div class="label">Latest 10 km test</div><b id="sTest">– </b><div class="sub" id="sTestSub">PR 17:00 · next test 25 Nov</div></div>
     </div>
   </header>
 
@@ -265,8 +265,8 @@ textarea { resize: vertical; min-height: 40px }
         <h3>Coach's notes</h3>
         <p>Right now he rides about 180 km a week at roughly 24 km/h. The goal needs 30.8 km/h for over three hours. That's a big jump, so the plan builds it in three ways: more aerobic engine (long easy rides up to 120 km), a higher ceiling (threshold and hard intervals), and lots of time at 31 km/h so goal pace feels normal by February.</p>
         <p>The real fitness is built before 6 Feb. Ramzan is for holding onto it, not adding to it. The 12 days off before the race cost very little: two weeks of rest loses only a small slice of endurance, and he'll arrive fresh.</p>
-        <p>His week: <strong>Mon swim · Tue ride · Wed strength · Thu ride · Fri swim · Sat strength or rest · Sun long ride.</strong> Every interval ride starts with 15 min easy and ends with 10 min easy. Strength is 20 min at home until 5 Feb: 3 rounds of squats, lunges, glute bridges, plank and side plank.</p>
-        <p><strong>Checkpoint:</strong> the 100 km rehearsal on 31 Jan. Under 3:20 there means 3:15 is on for race day, with a fresh body and a group to ride with.</p>
+        <p>His week: <strong>Mon ride · Tue swim · Wed ride · Thu swim · Fri rest · Sat long ride · Sun strength or rest.</strong> Every interval ride starts with 15 min easy and ends with 10 min easy. Strength is 20 min at home on Sundays until 5 Feb, plus a second round after the Tuesday swim if he has the energy: 3 rounds of squats, lunges, glute bridges, plank and side plank.</p>
+        <p><strong>Checkpoint:</strong> the 100 km rehearsal on Sat 30 Jan. Under 3:20 there means 3:15 is on for race day, with a fresh body and a group to ride with.</p>
       </div>
       <div class="card">
         <h3>Effort zones</h3>
@@ -289,8 +289,8 @@ textarea { resize: vertical; min-height: 40px }
       <h3>Swimming · 35 m pool</h3>
       <div class="grid2" style="gap:14px 24px">
         <div>
-          <p>Two swims a week build his engine and breathing control with zero pounding on the legs. The Monday swim also flushes out Sunday's long ride. He's a beginner, so for the first two months the swims are about technique and comfort, not distance.</p>
-          <p style="margin-top:8px"><strong>Monday</strong> is skills: kicking, breathing and stroke drills. <strong>Friday</strong> builds continuous swimming, from single lengths in November to 20 lengths (700 m) non-stop by 5 Feb.</p>
+          <p>Two swims a week build his engine and breathing control with zero pounding on the legs. The Tuesday swim loosens the legs after Monday's ride, and Friday stays a full rest day. He's a beginner, so for the first two months the swims are about technique and comfort, not distance.</p>
+          <p style="margin-top:8px"><strong>Tuesday</strong> is skills: kicking, breathing and stroke drills. <strong>Thursday</strong> builds continuous swimming, from single lengths in November to 20 lengths (700 m) non-stop by 4 Feb.</p>
         </div>
         <ul class="tight">
           <li>1 length = 35 m. The plan counts in lengths, so he never has to do maths at the wall.</li>
@@ -411,7 +411,7 @@ textarea { resize: vertical; min-height: 40px }
     { id: "base", name: "Base", from: "2026-11-02", to: "2026-11-29", goal: "Build the engine: more easy kilometres and the first tempo work. Long ride grows from 70 to 90 km." },
     { id: "build", name: "Build", from: "2026-11-30", to: "2026-12-27", goal: "Raise threshold and take the long ride past 100 km, with the first blocks at goal pace." },
     { id: "specific", name: "Race-specific", from: "2026-12-28", to: "2027-01-24", goal: "Long continuous blocks at 31 km/h so goal pace feels normal. Biggest week is 11–17 Jan." },
-    { id: "peak", name: "Peak", from: "2027-01-25", to: "2027-02-05", goal: "The 100 km rehearsal on 31 Jan, then one last sharp session before fasting starts." },
+    { id: "peak", name: "Peak", from: "2027-01-25", to: "2027-02-05", goal: "The 100 km rehearsal on 30 Jan, then one last sharp session before fasting starts." },
     { id: "ramadan", name: "Ramzan", from: "2027-02-06", to: "2027-03-07", goal: "Hold the fitness. Rides get shorter, hard work moves to after iftar, and nothing long is done while fasting." },
     { id: "rest", name: "Rest & race", from: "2027-03-08", to: "2027-03-20", goal: "No training. Recover, refuel after Ramzan, and race fresh." },
   ];
@@ -419,77 +419,77 @@ textarea { resize: vertical; min-height: 40px }
   // [day offset from Monday, type, title, detail, timing, key]
   const WEEKS = [
     { n: 1, start: "2026-11-02", phase: "base", km: 190, focus: "Settle the routine. Easy means easy.", s: [
-      [1, "endurance", "60 min easy + cadence drills", "Easy the whole way. Every 10 min, spin 1 min at high cadence (100+ rpm) at the same speed."],
-      [3, "tempo", "75 min with 3 × 8 min tempo", "Tempo is RPE 5–6, about 28–30 km/h on the flat. 4 min easy between."],
-      [6, "endurance", "70 km steady", "Easy zone, RPE 3–4. Eat something every 30 min from the start, even if you're not hungry."]] },
+      [0, "endurance", "60 min easy + cadence drills", "Easy the whole way. Every 10 min, spin 1 min at high cadence (100+ rpm) at the same speed."],
+      [2, "tempo", "75 min with 3 × 8 min tempo", "Tempo is RPE 5–6, about 28–30 km/h on the flat. 4 min easy between."],
+      [5, "endurance", "70 km steady", "Easy zone, RPE 3–4. Eat something every 30 min from the start, even if you're not hungry."]] },
     { n: 2, start: "2026-11-09", phase: "base", km: 205, focus: "First sweet-spot efforts.", s: [
-      [1, "intervals", "4 × 6 min sweet spot", "RPE 7, about 30–32 km/h. 3 min easy between."],
-      [3, "tempo", "80 min with 3 × 10 min tempo", "4 min easy between. Keep cadence above 85."],
-      [6, "endurance", "80 km, last 10 km at tempo", "Easy for 70 km, then lift to 28–30 km/h for the last 10."]] },
+      [0, "intervals", "4 × 6 min sweet spot", "RPE 7, about 30–32 km/h. 3 min easy between."],
+      [2, "tempo", "80 min with 3 × 10 min tempo", "4 min easy between. Keep cadence above 85."],
+      [5, "endurance", "80 km, last 10 km at tempo", "Easy for 70 km, then lift to 28–30 km/h for the last 10."]] },
     { n: 3, start: "2026-11-16", phase: "base", km: 225, focus: "Longest base week. Long ride reaches 90 km.", s: [
-      [1, "intervals", "3 × 10 min sweet spot", "4 min easy between."],
-      [3, "tempo", "90 min with 2 × 15 min tempo", "5 min easy between."],
-      [6, "endurance", "90 km with 2 × 10 km at 29 km/h", "Put the efforts at km 40 and km 70. Practise eating on the bike."]] },
+      [0, "intervals", "3 × 10 min sweet spot", "4 min easy between."],
+      [2, "tempo", "90 min with 2 × 15 min tempo", "5 min easy between."],
+      [5, "endurance", "90 km with 2 × 10 km at 29 km/h", "Put the efforts at km 40 and km 70. Practise eating on the bike."]] },
     { n: 4, start: "2026-11-23", phase: "base", km: 140, focus: "Recovery week + first 10 km test.", s: [
-      [1, "recovery", "45 min very easy", "RPE 2–3. Just turn the legs over."],
-      [3, "test", "10 km time trial", "Use the same flat route as his 19-min effort. 20 min warm-up with two short builds, then go hard and even. Target: under 18:30. Log the time.", "", true],
-      [6, "endurance", "60 km easy", "Relaxed. No efforts."]] },
+      [0, "recovery", "45 min very easy", "RPE 2–3. Just turn the legs over."],
+      [2, "test", "10 km time trial", "Use the same flat route as his 19-min effort. 20 min warm-up with two short builds, then go hard and even. Target: under 18:30. Log the time.", "", true],
+      [5, "endurance", "60 km easy", "Relaxed. No efforts."]] },
     { n: 5, start: "2026-11-30", phase: "build", km: 240, focus: "Threshold work starts. First taste of goal pace.", s: [
-      [1, "intervals", "4 × 8 min threshold", "RPE 8, about 32–34 km/h. 3 min easy between."],
-      [3, "intervals", "3 × 12 min sweet spot", "4 min easy between."],
-      [6, "endurance", "95 km with 3 × 10 km at goal pace", "Goal pace = 31 km/h. Efforts at km 30, 55 and 80. Fuel 60 g carbs an hour."]] },
+      [0, "intervals", "4 × 8 min threshold", "RPE 8, about 32–34 km/h. 3 min easy between."],
+      [2, "intervals", "3 × 12 min sweet spot", "4 min easy between."],
+      [5, "endurance", "95 km with 3 × 10 km at goal pace", "Goal pace = 31 km/h. Efforts at km 30, 55 and 80. Fuel 60 g carbs an hour."]] },
     { n: 6, start: "2026-12-07", phase: "build", km: 255, focus: "First 100 km of the plan.", s: [
-      [1, "intervals", "5 × 8 min threshold", "3 min easy between."],
-      [3, "intervals", "2 × 20 min sweet spot", "5 min easy between. Stay seated and smooth."],
-      [6, "endurance", "100 km with 4 × 10 km at goal pace", "Note the total time. It's the baseline for the rehearsal in January.", "", true]] },
+      [0, "intervals", "5 × 8 min threshold", "3 min easy between."],
+      [2, "intervals", "2 × 20 min sweet spot", "5 min easy between. Stay seated and smooth."],
+      [5, "endurance", "100 km with 4 × 10 km at goal pace", "Note the total time. It's the baseline for the rehearsal in January.", "", true]] },
     { n: 7, start: "2026-12-14", phase: "build", km: 270, focus: "Biggest build week. Raise the ceiling.", s: [
-      [1, "intervals", "5 × 3 min hard + 2 × 10 min threshold", "Hard = RPE 9, 2 min easy between. Then 5 min easy, then the threshold blocks."],
-      [3, "intervals", "2 × 25 min sweet spot", "5 min easy between."],
-      [6, "endurance", "110 km, last 30 km at tempo to goal pace", "Easy for 80 km, then build from 28 to 31 km/h."]] },
+      [0, "intervals", "5 × 3 min hard + 2 × 10 min threshold", "Hard = RPE 9, 2 min easy between. Then 5 min easy, then the threshold blocks."],
+      [2, "intervals", "2 × 25 min sweet spot", "5 min easy between."],
+      [5, "endurance", "110 km, last 30 km at tempo to goal pace", "Easy for 80 km, then build from 28 to 31 km/h."]] },
     { n: 8, start: "2026-12-21", phase: "build", km: 150, focus: "Recovery week. This is when the fitness lands.", s: [
-      [1, "recovery", "45 min easy with 4 × 30 s fast", "Full recovery between the fast bits."],
-      [3, "endurance", "60 min easy", "Easy zone only."],
-      [6, "endurance", "70 km easy", "Enjoy it. No efforts."]] },
+      [0, "recovery", "45 min easy with 4 × 30 s fast", "Full recovery between the fast bits."],
+      [2, "endurance", "60 min easy", "Easy zone only."],
+      [5, "endurance", "70 km easy", "Enjoy it. No efforts."]] },
     { n: 9, start: "2026-12-28", phase: "specific", km: 250, focus: "Goal pace gets long and continuous.", s: [
-      [1, "intervals", "3 × 15 min threshold", "5 min easy between."],
-      [3, "tempo", "90 min with 3 × 15 min at goal pace", "31 km/h. 5 min easy between."],
-      [6, "endurance", "100 km with 40 km at goal pace", "Ride km 50 to 90 non-stop at 31 km/h. Practise drinking without slowing down.", "", true]] },
+      [0, "intervals", "3 × 15 min threshold", "5 min easy between."],
+      [2, "tempo", "90 min with 3 × 15 min at goal pace", "31 km/h. 5 min easy between."],
+      [5, "endurance", "100 km with 40 km at goal pace", "Ride km 50 to 90 non-stop at 31 km/h. Practise drinking without slowing down.", "", true]] },
     { n: 10, start: "2027-01-04", phase: "specific", km: 265, focus: "Hard intervals to make 31 km/h feel easier.", s: [
-      [1, "intervals", "6 × 4 min hard", "RPE 9, 35+ km/h. 3 min easy between. This lifts the ceiling."],
-      [3, "tempo", "2 × 30 min at goal pace", "5 min easy between."],
-      [6, "endurance", "110 km with 50 km at goal pace", "Goal-pace block from km 40 to 90."]] },
+      [0, "intervals", "6 × 4 min hard", "RPE 9, 35+ km/h. 3 min easy between. This lifts the ceiling."],
+      [2, "tempo", "2 × 30 min at goal pace", "5 min easy between."],
+      [5, "endurance", "110 km with 50 km at goal pace", "Goal-pace block from km 40 to 90."]] },
     { n: 11, start: "2027-01-11", phase: "specific", km: 280, focus: "Biggest week of the plan.", s: [
-      [1, "intervals", "2 × 20 min threshold", "6 min easy between."],
-      [3, "tempo", "75 min: 4 × 10 min goal pace with surges", "Inside each block, surge for 15 s every 2 min, then settle back to 31 km/h. This is what riding in a group feels like."],
-      [6, "endurance", "120 km with 2 × 25 km at goal pace", "Longest ride of the plan. Efforts at km 40 and km 85. Fuel exactly like race day.", "", true]] },
+      [0, "intervals", "2 × 20 min threshold", "6 min easy between."],
+      [2, "tempo", "75 min: 4 × 10 min goal pace with surges", "Inside each block, surge for 15 s every 2 min, then settle back to 31 km/h. This is what riding in a group feels like."],
+      [5, "endurance", "120 km with 2 × 25 km at goal pace", "Longest ride of the plan. Efforts at km 40 and km 85. Fuel exactly like race day.", "", true]] },
     { n: 12, start: "2027-01-18", phase: "specific", km: 150, focus: "Recovery week + second 10 km test.", s: [
-      [1, "recovery", "45 min easy", "RPE 2–3."],
-      [3, "test", "10 km time trial", "Same route as week 4. Target: under 18:00.", "", true],
-      [6, "endurance", "70 km easy with 3 × 5 km at goal pace", "Mostly easy."]] },
+      [0, "recovery", "45 min easy", "RPE 2–3."],
+      [2, "test", "10 km time trial", "Same route as week 4. Target: under 18:00.", "", true],
+      [5, "endurance", "70 km easy with 3 × 5 km at goal pace", "Mostly easy."]] },
     { n: 13, start: "2027-01-25", phase: "peak", km: 210, focus: "Dress rehearsal week.", s: [
-      [1, "intervals", "4 × 10 min threshold", "4 min easy between."],
-      [3, "tempo", "60 min with 3 × 5 min at goal pace", "Short openers. Legs should feel springy by Sunday."],
-      [6, "sim", "100 km race rehearsal", "Full race simulation: race-day breakfast, bottles, food and kit. Target under 3:20. Log the time and what he ate.", "", true]] },
-    { n: 14, start: "2027-02-01", phase: "peak", km: 110, focus: "Last normal week. Ramzan starts Saturday.", s: [
-      [1, "recovery", "60 min easy", "Recover from the rehearsal."],
-      [3, "intervals", "75 min with 3 × 12 min sweet spot", "Last full-intensity session before fasting."],
-      [6, "recovery", "40 min easy spin", "First weekend of fasting. Just spin and see how the body feels.", AI]] },
+      [0, "intervals", "4 × 10 min threshold", "4 min easy between."],
+      [2, "tempo", "60 min with 3 × 5 min at goal pace", "Short openers. Legs should feel springy by Saturday."],
+      [5, "sim", "100 km race rehearsal", "Full race simulation: race-day breakfast, bottles, food and kit. Target under 3:20. Log the time and what he ate.", "", true]] },
+    { n: 14, start: "2027-02-01", phase: "peak", km: 110, focus: "Last normal week. Ramzan starts Saturday 6 Feb.", s: [
+      [0, "recovery", "60 min easy", "Recover from the rehearsal."],
+      [2, "intervals", "75 min with 3 × 12 min sweet spot", "Last full-intensity session before fasting."],
+      [5, "recovery", "40 min easy spin", "First weekend of fasting. Just spin and see how the body feels.", AI]] },
     { n: 15, start: "2027-02-08", phase: "ramadan", km: 140, focus: "Find the rhythm: hard after iftar, easy before it.", s: [
-      [1, "intervals", "60 min with 3 × 8 min sweet spot", "Start 90 min after iftar. Drink 500 ml during the ride.", AI],
-      [3, "recovery", "45 min easy", "Time it to finish as the fast opens, so he can rehydrate straight away. Easy zone only.", BI],
-      [6, "endurance", "60 km with 2 × 10 km at goal pace", "Ride with lights on a route he knows, or ride before suhoor instead.", AI]] },
+      [0, "intervals", "60 min with 3 × 8 min sweet spot", "Start 90 min after iftar. Drink 500 ml during the ride.", AI],
+      [2, "recovery", "45 min easy", "Time it to finish as the fast opens, so he can rehydrate straight away. Easy zone only.", BI],
+      [5, "endurance", "60 km with 2 × 10 km at goal pace", "Ride with lights on a route he knows, or ride before suhoor instead.", AI]] },
     { n: 16, start: "2027-02-15", phase: "ramadan", km: 150, focus: "Keep one quality session a week.", s: [
-      [1, "intervals", "4 × 6 min threshold", "3 min easy between.", AI],
-      [3, "recovery", "45 min easy", "Easy zone only. Skip it if he feels dizzy or flat.", BI],
-      [6, "endurance", "70 km with 20 km at goal pace", "Goal-pace block from km 35 to 55.", AI]] },
+      [0, "intervals", "4 × 6 min threshold", "3 min easy between.", AI],
+      [2, "recovery", "45 min easy", "Easy zone only. Skip it if he feels dizzy or flat.", BI],
+      [5, "endurance", "70 km with 20 km at goal pace", "Goal-pace block from km 35 to 55.", AI]] },
     { n: 17, start: "2027-02-22", phase: "ramadan", km: 155, focus: "Last long ride.", s: [
-      [1, "intervals", "5 × 4 min just above goal pace", "32–33 km/h. 3 min easy between.", AI],
-      [3, "recovery", "50 min easy", "Easy zone only.", BI],
-      [6, "endurance", "75 km with 25 km at goal pace", "Last long ride before the race.", AI, true]] },
-    { n: 18, start: "2027-03-01", phase: "ramadan", km: 90, focus: "Sharpen up. Last ride on Sunday 7 Mar.", s: [
-      [1, "tempo", "50 min with 3 × 8 min at goal pace", "4 min easy between.", AI],
-      [3, "recovery", "40 min easy with 4 × 1 min fast", "Full recovery between.", BI],
-      [6, "tempo", "60 min with 3 × 5 min at goal pace", "Last ride before the race. Finish feeling like he could do more.", AI, true]] },
+      [0, "intervals", "5 × 4 min just above goal pace", "32–33 km/h. 3 min easy between.", AI],
+      [2, "recovery", "50 min easy", "Easy zone only.", BI],
+      [5, "endurance", "75 km with 25 km at goal pace", "Last long ride before the race.", AI, true]] },
+    { n: 18, start: "2027-03-01", phase: "ramadan", km: 90, focus: "Sharpen up. Last ride on Saturday 6 Mar.", s: [
+      [0, "tempo", "50 min with 3 × 8 min at goal pace", "4 min easy between.", AI],
+      [2, "recovery", "40 min easy with 4 × 1 min fast", "Full recovery between.", BI],
+      [5, "tempo", "60 min with 3 × 5 min at goal pace", "Last ride before the race. Finish feeling like he could do more.", AI, true]] },
   ];
 
   const parseDay = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -500,7 +500,7 @@ textarea { resize: vertical; min-height: 40px }
   const fmtDate = (s, o = { day: "numeric", month: "short" }) => parseDay(s).toLocaleDateString("en-GB", o);
   const dow = (s) => parseDay(s).toLocaleDateString("en-GB", { weekday: "short" });
 
-  // Swims, one row per week: [Monday lengths, title, detail], [Friday lengths, title, detail]. 1 length = 35 m.
+  // Swims, one row per week: [Tuesday lengths, title, detail], [Thursday lengths, title, detail]. 1 length = 35 m.
   const RAM_SWIM = "After iftar, at least an hour after eating. Never swim while fasting: it's too easy to swallow water.";
   const SWIMS = [
     [[12, "Kick and breathing drills", "4 lengths easy (any stroke), 4 lengths kicking with a board, 4 lengths freestyle breathing out underwater."], [12, "12 × 1 length easy", "45 s rest at the wall after each. Count the strokes on each length."]],
@@ -515,8 +515,8 @@ textarea { resize: vertical; min-height: 40px }
     [[18, "Bilateral breathing set", "6 × 3 lengths breathing every 3 strokes, 30 s rest."], [24, "3 × 8 lengths (280 m)", "60 s rest after each set."]],
     [[20, "Technique + pace", "10 lengths drills, then 5 × 2 lengths a little quicker, 40 s rest."], [24, "12 lengths non-stop + 6 × 2", "12 lengths (420 m) continuous, 2 min rest, then 6 × 2 lengths steady."]],
     [[12, "Easy technique swim", "Recovery week."], [16, "10 lengths non-stop, then 6 easy", "Should feel comfortable by now."]],
-    [[16, "Easy technique swim", "Rehearsal week, so keep it light."], [14, "Easy 14 lengths", "Loosen up for Sunday's 100 km. Nothing hard."]],
-    [[12, "Recovery swim", "The day after the 100 km rehearsal. Easy lengths, lots of rest. Great for the legs."], [20, "20 lengths non-stop (700 m)", "Milestone swim before Ramzan. Take it slow and steady.", true]],
+    [[16, "Easy technique swim", "Rehearsal week, so keep it light."], [14, "Easy 14 lengths", "Loosen up for Saturday's 100 km. Nothing hard."]],
+    [[12, "Recovery swim", "Easy lengths with lots of rest after the weekend's 100 km rehearsal. Great for the legs."], [20, "20 lengths non-stop (700 m)", "Milestone swim before Ramzan. Take it slow and steady.", true]],
     [[10, "Easy swim, 20 min", RAM_SWIM, AI], [12, "8 non-stop + 4 drill", RAM_SWIM, AI]],
     [[10, "Easy swim, 20 min", RAM_SWIM, AI], [12, "8 non-stop + 4 drill", RAM_SWIM, AI]],
     [[10, "Easy swim, 20 min", RAM_SWIM, AI], [14, "10 non-stop + 4 drill", RAM_SWIM, AI]],
@@ -528,7 +528,7 @@ textarea { resize: vertical; min-height: 40px }
     SESSIONS.push({ id: `w${w.n}-${off}`, week: w.n, date: addDays(w.start, off), type, title, detail, timing: timing || "", key: !!key });
   }));
   SWIMS.forEach((pair, i) => pair.forEach(([lengths, title, detail, x, y], j) => {
-    const w = WEEKS[i], off = j === 0 ? 0 : 4, timing = x === AI ? AI : "", key = x === true || y === true;
+    const w = WEEKS[i], off = j === 0 ? 1 : 3, timing = x === AI ? AI : "", key = x === true || y === true;
     SESSIONS.push({ id: `w${w.n}-${off}`, week: w.n, date: addDays(w.start, off), type: "swim", lengths, title, detail: `${lengths} lengths · ${lengths * POOL_M} m. ${detail}`, timing, key });
   }));
   SESSIONS.sort((a, b) => a.date.localeCompare(b.date));
@@ -596,7 +596,7 @@ textarea { resize: vertical; min-height: 40px }
 
     const t = todayISO(), due = SESSIONS.filter((s) => s.date <= t), doneN = SESSIONS.filter((s) => done[s.id]).length;
     $("sPlan").innerHTML = `${doneN} <span>/ ${SESSIONS.length}</span>`;
-    $("sPlanSub").textContent = due.length ? `${due.filter((s) => done[s.id]).length} of ${due.length} due so far` : "First session Tue 3 Nov";
+    $("sPlanSub").textContent = due.length ? `${due.filter((s) => done[s.id]).length} of ${due.length} due so far` : "First session Mon 2 Nov";
 
     const best = bestLong();
     $("sBest").innerHTML = best ? `${best.v.toFixed(1)} <span>km/h</span>` : `– <span>km/h</span>`;
@@ -675,7 +675,7 @@ textarea { resize: vertical; min-height: 40px }
       h = `<div class="when"><b>${parseDay(t).getDate()}</b><span>${fmtDate(t, { month: "short" })}</span></div><div>
         <div class="label">Today${cw ? " · Week " + cw.n : ""}${phase ? " · " + esc(phase.name) : ""}</div>
         <h2>Rest day</h2><p class="detail">${t < WEEKS[0].start ? "The plan starts soon." : "Recovery is training too. Stretch, eat well, sleep 8 hours."}${next ? ` Next: <strong>${esc(next.title)}</strong> on ${dow(next.date)} ${fmtDate(next.date)}${d === 1 ? " (tomorrow)" : ""}.` : ""}</p>
-        ${cw && cw.n <= 14 && t <= "2027-02-05" ? '<p class="detail muted" style="margin-top:6px">Good day for the 20 min strength routine.</p>' : ""}</div>`;
+        ${parseDay(t).getDay() === 0 && t <= "2027-02-05" ? '<p class="detail muted" style="margin-top:6px">Sunday: do the 20 min strength routine.</p>' : parseDay(t).getDay() === 5 ? '<p class="detail muted" style="margin-top:6px">Friday is a full rest day. No riding, no swimming.</p>' : ""}</div>`;
     }
     $("today").innerHTML = h;
   }
@@ -738,8 +738,8 @@ textarea { resize: vertical; min-height: 40px }
       ["Longest ride so far", longest ? `${longest} km` : "–"],
       ["Best 80 km+ average", best ? `${best.v.toFixed(1)} km/h` : "–"],
       ["Gap to goal pace", best ? (best.v >= GOAL_KMH ? "On pace ✓" : `${(GOAL_KMH - best.v).toFixed(1)} km/h`) : "–"],
-      ["10 km tests", tests.length ? tests.map((x) => fmtSec(secsOf(x))).join(" → ") : "First one 26 Nov"],
-      ["100 km rehearsal (31 Jan)", reh ? `${fmtSec(secsOf(reh))}${secsOf(reh) <= 3 * 3600 + 20 * 60 ? " ✓ on track" : ""}` : "Target under 3:20"],
+      ["10 km tests", tests.length ? tests.map((x) => fmtSec(secsOf(x))).join(" → ") : "First one 25 Nov"],
+      ["100 km rehearsal (30 Jan)", reh ? `${fmtSec(secsOf(reh))}${secsOf(reh) <= 3 * 3600 + 20 * 60 ? " ✓ on track" : ""}` : "Target under 3:20"],
     ];
     $("goalKv").innerHTML = rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
   }
